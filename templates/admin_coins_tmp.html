@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>coin Data</title>
+    <script>
+
+        function handleForms(event, url) {
+            event.preventDefault()
+    
+            const formData = new FormData(event.target);
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert('Operation successful!');
+                    window.location.reload(); // Reload the page to reflect changes
+                }
+            })
+            .catch(error => {
+                alert('An error occurred: ' + error);
+            });
+        }
+
+        function toggleAllCheckboxes(source) {
+            const checkboxes = document.querySelectorAll('.coinCheckbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        function submitBulkTime(event) {
+            event.preventDefault();
+
+            const selectedIds = Array.from(document.querySelectorAll('.coinCheckbox:checked')).map(cb => cb.value);
+            const timeOffset = document.getElementById('bulkTimeOffset').value;
+
+            if (selectedIds.length === 0) {
+                alert("No coins selected.");
+                return;
+            }
+
+            fetch('/bulk_add_coin_time', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    coin_ids: selectedIds,
+                    time_offset: timeOffset
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Bulk update successful!');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.message || data.error));
+                }
+            })
+            .catch(err => alert('Request failed: ' + err));
+        }
+
+    </script>
+</head>
+<body>
+    <h1>Coin Data</h1>
+    <form id="bulkTimeForm" onsubmit="submitBulkTime(event)">
+        <label>Time Offset to Add: <input type="number" id="bulkTimeOffset" name="time_offset" required></label>
+        <button type="submit">Apply to Selected Coins</button>
+    </form>
+<br>
+    <table border="1">
+        <thead>
+            <tr>
+                <th><input type="checkbox" onclick="toggleAllCheckboxes(this)"></th> <!-- Select All -->
+                <th>Coin ID</th>
+                <th>Coin Tag ID</th>
+                <th>Coin value</th>
+                <th>coin category</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for coin in coins %}
+        <tr>
+            <!-- Update form -->
+            <form onsubmit="handleForms(event, '/admin/update_coin')">
+                <input type="hidden" name="coin_id" value="{{ coin['coin_id'] }}">
+                <td><input type="checkbox" class="coinCheckbox" value="{{ coin['coin_id'] }}"></td>
+                <td>{{ coin['coin_id'] }}</td>
+                <td><input type="text" name="coin_tag_id" value="{{ coin['coin_tag_id'] }}"></td>
+                <td><input type="text" name="coin_value" value="{{ coin['coin_value'] }}"></td>
+                <td><input type="text" name="coin_category" value="{{ coin['coin_category'] }}"></td>
+                <td style="display: flex; gap: 4px;">
+                    <button type="submit">Update</button>
+                    </form>
+                    <form onsubmit="handleForms(event, '/admin/delete_coin')">
+                        <input type="hidden" name="coin_id" value="{{ coin['coin_id'] }}">
+                        <button type="submit">Delete</button>
+                    </form>
+                </td>
+        </tr>
+
+            {% endfor %}
+            <!-- new coin form -->
+            <tr>
+                <form onsubmit="handleForms(event, '/admin/add_coin')">
+                    <td></td> <!-- coin ID will be auto-generated -->
+                    <td></td>
+                    <td><input type="text" name="coin_tag_id" placeholder="Tag ID" required></td>
+                    <td><input type="text" name="coin_value" placeholder="Value" value="1000" required></td>
+                    <td><input type="text" name="coin_category" placeholder="Category" value="0" required></td>
+                    <td><button type="submit">Add coin</button></td>
+
+                </form>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

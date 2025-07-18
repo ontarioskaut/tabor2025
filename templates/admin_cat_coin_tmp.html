@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Data</title>
+    <script>
+
+        function handleForms(event, url) {
+            event.preventDefault()
+    
+            const formData = new FormData(event.target);
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert('Operation successful!');
+                    window.location.reload(); // Reload the page to reflect changes
+                }
+            })
+            .catch(error => {
+                alert('An error occurred: ' + error);
+            });
+        }
+
+        function toggleAllCheckboxes(source) {
+            const checkboxes = document.querySelectorAll('.categoryCheckbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        function submitBulkTime(event) {
+            event.preventDefault();
+
+            const selectedIds = Array.from(document.querySelectorAll('.categoryCheckbox:checked')).map(cb => cb.value);
+            const timeOffset = document.getElementById('bulkTimeOffset').value;
+
+            if (selectedIds.length === 0) {
+                alert("No category selected.");
+                return;
+            }
+
+            fetch('/bulk_add_coin_time_category', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    ids: selectedIds,
+                    time_offset: timeOffset
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Bulk update successful!');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.message || data.error));
+                }
+            })
+            .catch(err => alert('Request failed: ' + err));
+        }
+
+    </script>
+</head>
+<body>
+    <h1>Coin Category Data</h1>
+    <form id="bulkTimeForm" onsubmit="submitBulkTime(event)">
+        <label>Time Offset to Add: <input type="number" id="bulkTimeOffset" name="time_offset" required></label>
+        <button type="submit">Apply to selected categories</button>
+    </form>
+<br>
+    <table border="1">
+        <thead>
+            <tr>
+                <th><input type="checkbox" onclick="toggleAllCheckboxes(this)"></th> <!-- Select All -->
+                <th>Category ID</th>
+                <th>Category Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in categories %}
+        <tr>
+            <!-- Update form -->
+            <form onsubmit="handleForms(event, '/admin/update_coin_category')">
+                <input type="hidden" name="category_id" value="{{ cat['coin_category_id'] }}">
+                <td><input type="checkbox" class="categoryCheckbox" value="{{ cat['coin_category_id'] }}"></td>
+                <td>{{ cat['coin_category_id'] }}</td>
+                <td><input type="text" name="category_name" value="{{ cat['coin_category_name'] }}"></td>
+                <td style="display: flex; gap: 4px;">
+                    <button type="submit">Update</button>
+                    </form>
+                    <!-- Delete form (separate, but visually inline) -->
+                    <form onsubmit="handleForms(event, '/admin/delete_coin_category')">
+                        <input type="hidden" name="category_id" value="{{ cat['coin_category_id'] }}">
+                        <button type="submit">Delete</button>
+                    </form>
+                </td>
+        </tr>
+
+            {% endfor %}
+            <!-- new cat form -->
+            <tr>
+                <form onsubmit="handleForms(event, '/admin/add_coin_category')">
+                    <td></td> <!-- Cat ID will be auto-generated -->
+                    <td></td>
+                    <td><input type="text" name="category_name" placeholder="Name" value="no_name" required></td>
+                    <td><button type="submit">Add coin category</button></td>
+
+                </form>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

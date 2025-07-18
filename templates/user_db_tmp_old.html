@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Data</title>
+</head>
+<body>
+    <h1>User Data</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>User Tag ID</th>
+                <th>User Name</th>
+                <th>User Acronym</th>
+                <th>User Category</th>
+                <th>User Time Offset</th>
+                <th>User Game Start Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.user_id }}</td>
+                <td>{{ user.user_tag_id }}</td>
+                <td>{{ user.user_name }}</td>
+                <td>{{ user.user_acro }}</td>
+                <td>{{ user.user_category }}</td>
+                <td>{{ user.user_time_offset }}</td>
+                <td>{{ user.user_game_start_timestamp }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
