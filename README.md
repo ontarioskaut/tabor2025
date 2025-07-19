@@ -4,8 +4,8 @@ něco tam je, můžeš se na to podívat a říct co bych měl udělat jinak
 
 jak to funguje?
 Celé je to flask a sqlite
-De facto jen operace nad databází
-  Databázi v aktuální verzi vždy znovu otevřu, změním a přísutp k ní zavřu... Ale asi věřím, že je to to lepší řešení
+De facto jen operace nad databází.
+Tu v aktuální verzi vždy znovu otevřu, změním a přísutp k ní zavřu. Což by u mnoha požadavků najednou mohlo dělat problémy. ale zatím mi to přišlo jako nejjednodušší řešení. 
 
 
 
