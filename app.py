@@ -985,7 +985,7 @@ def bulk_add_coin_time_category():
         connection_db.close()
 
 if __name__ == '__main__':
-	print("start")
+    print("start")
     create_tables(database_name)
     app.run(host='0.0.0.0', debug=True)
 
