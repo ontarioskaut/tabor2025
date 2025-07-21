@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #import json
 from flask import Flask, jsonify, request, render_template, render_template_string
 import sqlite3
@@ -983,9 +984,8 @@ def bulk_add_coin_time_category():
     finally:
         connection_db.close()
 
-#print("start")
-#create_tables(database_name)
-
 if __name__ == '__main__':
+	print("start")
+    create_tables(database_name)
     app.run(host='0.0.0.0', debug=True)
 
