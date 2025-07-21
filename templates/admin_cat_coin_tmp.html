@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>User Data</title>
+    <title>Coin Categories</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <script src="/static/js/bootstrap.js"></script>
     <script>
-
         function handleForms(event, url) {
-            event.preventDefault()
-    
+            event.preventDefault();
             const formData = new FormData(event.target);
             fetch(url, {
                 method: 'POST',
@@ -19,7 +19,7 @@
                     alert(data.error);
                 } else {
                     alert('Operation successful!');
-                    window.location.reload(); // Reload the page to reflect changes
+                    window.location.reload();
                 }
             })
             .catch(error => {
@@ -34,7 +34,6 @@
 
         function submitBulkTime(event) {
             event.preventDefault();
-
             const selectedIds = Array.from(document.querySelectorAll('.categoryCheckbox:checked')).map(cb => cb.value);
             const timeOffset = document.getElementById('bulkTimeOffset').value;
 
@@ -46,10 +45,7 @@
             fetch('/bulk_add_coin_time_category', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    ids: selectedIds,
-                    time_offset: timeOffset
-                })
+                body: JSON.stringify({ ids: selectedIds, time_offset: timeOffset })
             })
             .then(res => res.json())
             .then(data => {
@@ -62,57 +58,65 @@
             })
             .catch(err => alert('Request failed: ' + err));
         }
-
     </script>
 </head>
-<body>
-    <h1>Coin Category Data</h1>
-    <form id="bulkTimeForm" onsubmit="submitBulkTime(event)">
-        <label>Time Offset to Add: <input type="number" id="bulkTimeOffset" name="time_offset" required></label>
-        <button type="submit">Apply to selected categories</button>
-    </form>
-<br>
-    <table border="1">
-        <thead>
-            <tr>
-                <th><input type="checkbox" onclick="toggleAllCheckboxes(this)"></th> <!-- Select All -->
-                <th>Category ID</th>
-                <th>Category Name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for cat in categories %}
-        <tr>
-            <!-- Update form -->
-            <form onsubmit="handleForms(event, '/admin/update_coin_category')">
-                <input type="hidden" name="category_id" value="{{ cat['coin_category_id'] }}">
-                <td><input type="checkbox" class="categoryCheckbox" value="{{ cat['coin_category_id'] }}"></td>
-                <td>{{ cat['coin_category_id'] }}</td>
-                <td><input type="text" name="category_name" value="{{ cat['coin_category_name'] }}"></td>
-                <td style="display: flex; gap: 4px;">
-                    <button type="submit">Update</button>
-                    </form>
-                    <!-- Delete form (separate, but visually inline) -->
-                    <form onsubmit="handleForms(event, '/admin/delete_coin_category')">
+<body class="bg-light">
+    <div class="container mt-4">
+        <h1 class="mb-4">Coin Category Data</h1>
+
+        <form id="bulkTimeForm" onsubmit="submitBulkTime(event)" class="mb-4 row g-3 align-items-center">
+            <div class="col-auto">
+                <label for="bulkTimeOffset" class="col-form-label">Time Offset to Add:</label>
+            </div>
+            <div class="col-auto">
+                <input type="number" id="bulkTimeOffset" name="time_offset" class="form-control" required>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Apply to selected categories</button>
+            </div>
+        </form>
+
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th><input type="checkbox" onclick="toggleAllCheckboxes(this)"></th>
+                    <th>Category ID</th>
+                    <th>Category Name</th>
+                    <th style="width: 200px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cat in categories %}
+                <tr>
+                    <form onsubmit="handleForms(event, '/admin/update_coin_category')" class="d-flex gap-2">
                         <input type="hidden" name="category_id" value="{{ cat['coin_category_id'] }}">
-                        <button type="submit">Delete</button>
+                        <td><input type="checkbox" class="form-check-input categoryCheckbox" value="{{ cat['coin_category_id'] }}"></td>
+                        <td class="align-middle">{{ cat['coin_category_id'] }}</td>
+                        <td><input type="text" name="category_name" value="{{ cat['coin_category_name'] }}" class="form-control"></td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <button type="submit" class="btn btn-sm btn-success">Update</button>
                     </form>
-                </td>
-        </tr>
+                                <form onsubmit="handleForms(event, '/admin/delete_coin_category')">
+                                    <input type="hidden" name="category_id" value="{{ cat['coin_category_id'] }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                </tr>
+                {% endfor %}
 
-            {% endfor %}
-            <!-- new cat form -->
-            <tr>
-                <form onsubmit="handleForms(event, '/admin/add_coin_category')">
-                    <td></td> <!-- Cat ID will be auto-generated -->
-                    <td></td>
-                    <td><input type="text" name="category_name" placeholder="Name" value="no_name" required></td>
-                    <td><button type="submit">Add coin category</button></td>
-
-                </form>
-            </tr>
-        </tbody>
-    </table>
+                <!-- New category form -->
+                <tr>
+                    <form onsubmit="handleForms(event, '/admin/add_coin_category')" class="d-flex gap-2">
+                        <td></td>
+                        <td></td>
+                        <td><input type="text" name="category_name" class="form-control" placeholder="Name" value="no_name" required></td>
+                        <td><button type="submit" class="btn btn-primary">Add Coin Category</button></td>
+                    </form>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </body>
 </html>
