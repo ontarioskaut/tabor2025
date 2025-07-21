@@ -5,16 +5,23 @@ něco tam je, můžeš se na to podívat a říct co bych měl udělat jinak
 jak to funguje?
 Celé je to flask a sqlite
 De facto jen operace nad databází.
-Tu v aktuální verzi vždy znovu otevřu, změním a přísutp k ní zavřu. Což by u mnoha požadavků najednou mohlo dělat problémy. ale zatím mi to přišlo jako nejjednodušší řešení. 
+Tu v aktuální verzi vždy znovu otevřu, změním a přísutp k ní zavřu. Což by u mnoha požadavků najednou mohlo dělat problémy. ale zatím mi to přišlo jako nejjednodušší řešení. - jo, to stačí. víc bych to neřešil
 
 
 
 TO-DO (věcí o kterých asi vím)
 - logging - řešil bych pomocí python logging modulu a vypadá to být vpohodě
-- přesné návratové hodnoty - oproti našemu dokumentu v některých funkcích vracím offset ne atuální čas, klidně to změním
+- přesné návratové hodnoty - oproti našemu dokumentu v některých funkcích vracím offset ne atuální čas, klidně to změním - jo, to by bylo fajn
 - nemožnost použít jeden tag vícekrát - takže do databáze dát čas posledního použití a pak kontrolovat jeslti to bylo včera nebo ne... to půjde prostě nějak přidat, jen se to bude muset změnit všude
-- jsem si uvědomil že "category name" vlastně nikde nepoužívám, takže pokud nechceme kategorie jen čísílkové, tak tam přidám join a nějak to upravím
+- jsem si uvědomil že "category name" vlastně nikde nepoužívám, takže pokud nechceme kategorie jen čísílkové, tak tam přidám join a nějak to upravím - na tomto budu teď pracovat - budou tam select boxy u userů/coinů
 - trochu jsem pohýbal se strukturou display_api - doplněny announcements. Ty by se hodilo umět editovat v admin gui
+- přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
+- date select boxy pro iteraktivnější výběr času
+- tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
+- displayed - změnit number input na checkbox
+- logování transakcí - tabulka user, amount, transaction_details_text. Viditelné po kliknutí na uživatele.
+
+
 
 ## API features:
 ### API for end nodes
