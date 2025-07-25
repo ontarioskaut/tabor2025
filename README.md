@@ -1,37 +1,37 @@
 # tabor2025
 
-něco tam je, můžeš se na to podívat a říct co bych měl udělat jinak
 
-jak to funguje?
-Celé je to flask a sqlite
+## jak to funguje?  
+Celé je to flask a sqlite  
 De facto jen operace nad databází.
-
-poznámky k implementaci
+  
+### poznámky k implementaci
 - když má více lidí stejný akronym, tak se zobrazí jen poslední, protože to ukládám do množiny
 - boolean je jen Integer, kdekoli jdou používat hodnoty False a True jako 0 a 1, ale nepoužívám je
 - Datetime se automaticky vybralo, jak se bude ukládat je to TEXT v ISO formátu. K hodnotám se dá přistupovat i pomocí sqlite, ale já tam používám python datetime
-
 - coin tag může být zároveň user tag, vadí nám to?
 - coin se initializuje pomocí set_coinval nebo activate_coin, u druhého se nastaví "na nulu"
 - možnost add_user a add_coin by se asi primárně neměli používat, ideální je to nejdřív iniciovat přes init_user, nebo operaci s coinem
 
 
-TO-DO (věcí o kterých asi vím)
+## TO-DO (věcí o kterých asi vím)
 - logging - řešil bych pomocí python logging modulu a vypadá to být vpohodě
 - přesné návratové hodnoty - oproti našemu dokumentu v některých funkcích vracím offset ne atuální čas, klidně to změním - jo, to by bylo fajn
-    - fajn , upravím, jen v jakých jednotkách? sekundy? string? co ti vyhovuje nejvíc?
-- :check: nemožnost použít jeden tag vícekrát - takže do databáze dát čas posledního použití a pak kontrolovat jeslti to bylo včera nebo ne... to půjde prostě nějak přidat, jen se to bude muset změnit všude
-    - v databázi je uložené i poslední použití skrz add_coinval, i bool "is_active". Tag se dá aktivovat pomocí "activate_coin" nebo skrz admin stránku, asi snad funkční řekl bych
+    - fajn , upravím, jen v **jakých jednotkách**? sekundy? string? co ti vyhovuje nejvíc?
 - jsem si uvědomil že "category name" vlastně nikde nepoužívám, takže pokud nechceme kategorie jen čísílkové, tak tam přidám join a nějak to upravím - na tomto budu teď pracovat - budou tam select boxy u userů/coinů
 - trochu jsem pohýbal se strukturou display_api - doplněny announcements. Ty by se hodilo umět editovat v admin gui
 - přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
-- :check: (asi) date select boxy pro iteraktivnější výběr času
-    - jsem to změnil, nejjednodušší možnou cestou, ale prohlížec neumožňuje výběr na sekundy a dělá v tom lehce bordel. Dá se použít flatpickr, ale toto je za mě dostatečné
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
-- :check: displayed - změnit number input na checkbox
 - logování transakcí - tabulka user, amount, transaction_details_text. Viditelné po kliknutí na uživatele.
 - chceme kategorie nechat jako jen jedno číslo, nebo nějak zapracovat, aby mohl být uživatel ve vícero kategoriích?
 - tlačítko pro vynulování coinů (případně řešitelné přes "krát 0", pokud by byly další režimy)
+
+## Done To-Do pro kontrolu
+- displayed - změnit number input na checkbox
+- date select boxy pro iteraktivnější výběr času
+    - jsem to změnil, nejjednodušší možnou cestou, ale prohlížec neumožňuje výběr na sekundy a dělá v tom lehce bordel. Dá se použít flatpickr, ale toto je za mě dostatečné
+- nemožnost použít jeden tag vícekrát - takže do databáze dát čas posledního použití a pak kontrolovat jeslti to bylo včera nebo ne... to půjde prostě nějak přidat, jen se to bude muset změnit všude
+    - v databázi je uložené i poslední použití skrz add_coinval, i bool "is_active". Tag se dá aktivovat pomocí "activate_coin" nebo skrz admin stránku, asi snad funkční řekl bych
 
 
 ## API features:
