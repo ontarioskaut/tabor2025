@@ -50,6 +50,27 @@ def create_coin_category_db(cur):
         coin_category_name TEXT
     )""")
 
+def create_log_table(cur):
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS logs (
+        id INTEGER PRIMARY KEY,
+        timestamp DATETIME,
+        user_id INTEGER,
+        amount INTEGER,
+        details TEXT
+    )""")
+
+def create_log_triggers(cur):
+    cur.execute("""
+    CREATE TRIGGER IF NOT EXISTS user_offset_update
+        AFTER UPDATE
+        ON users
+    BEGIN
+        INSERT INTO logs (timestamp, user_id, amount, details)
+        VALUES (DATETIME('NOW'), NEW.user_id, NEW.user_time_offset - OLD.user_time_offset, 'updated offset');
+    END;
+    """)
+
 def create_tables(name: str):
     connection_db = sqlite3.connect(name)
     cursor_db = connection_db.cursor()
@@ -57,6 +78,10 @@ def create_tables(name: str):
     create_coins_db(cursor_db)
     create_category_db(cursor_db)
     create_coin_category_db(cursor_db)
+
+    create_log_table(cursor_db)
+    create_log_triggers(cursor_db)
+
     cursor_db.close()
 
 
@@ -109,6 +134,7 @@ def test_fce():
 
 
     print("heeej")
+
 
 #test_fce()
 
@@ -221,8 +247,7 @@ def add_coinval():
         new_offset = coin[0] + user[0]
         cursor_db.execute("UPDATE users SET user_time_offset = ? WHERE user_tag_id = ?", (new_offset, user_tag_id))
         
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S') 
-        cursor_db.execute("UPDATE coins SET last_used = ?, is_active = ? WHERE coin_tag_id = ?", (current_time, 0, coin_tag_id))
+        cursor_db.execute("UPDATE coins SET last_used = DATETIME('NOW'), is_active = ? WHERE coin_tag_id = ?", (0, coin_tag_id))
 
         
         connection_db.commit()
@@ -1010,6 +1035,21 @@ def bulk_add_coin_time_category():
         return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         connection_db.close()
+
+
+@app.route('/test_log', methods=['GET'])
+def test_log():
+    connection_db = sqlite3.connect(database_name)
+    cursor_db = connection_db.cursor()
+
+    cursor_db.execute("""SELECT * FROM logs """)
+    result = cursor_db.fetchall()
+
+    connection_db.close()
+
+    return result
+
+
 
 if __name__ == '__main__':
     print("start")

@@ -12,27 +12,32 @@ De facto jen operace nad databází.
 - coin tag může být zároveň user tag, vadí nám to?
 - coin se initializuje pomocí set_coinval nebo activate_coin, u druhého se nastaví "na nulu"
 - možnost add_user a add_coin by se asi primárně neměli používat, ideální je to nejdřív iniciovat přes init_user, nebo operaci s coinem
+- https://sqlite.org/autoinc.html tvrdí, že se primary key dá jako "o jedna vyšší" automaticky a nemusím to dělat já... ale asi to tak už nechám. AUTOINCREMENT je prý zbytečný a jen zajišťuje, aby ID nemohlo být použito už nikdy znovu, ani po vymazání nějakého prvku, což podle mě nechceme, navíc sami tvrdí že to je extra CPU
+    - integer primary key je automaticky ROWID a dá se tak k němu přistupovat
 
 
 ## TO-DO (věcí o kterých asi vím)
-- logging - řešil bych pomocí python logging modulu a vypadá to být vpohodě
 - přesné návratové hodnoty - oproti našemu dokumentu v některých funkcích vracím offset ne atuální čas, klidně to změním - jo, to by bylo fajn
     - fajn , upravím, jen v **jakých jednotkách**? sekundy? string? co ti vyhovuje nejvíc?
-- jsem si uvědomil že "category name" vlastně nikde nepoužívám, takže pokud nechceme kategorie jen čísílkové, tak tam přidám join a nějak to upravím - na tomto budu teď pracovat - budou tam select boxy u userů/coinů
+- jsem si uvědomil že "category name" vlastně nikde nepoužívám, takže pokud nechceme kategorie jen čísílkové, tak tam přidám join a nějak to upravím - na tomto budu teď pracovat - budou tam select boxy u userů/coinů -*upříměn nevím co tím myslíš, ale nechávám to na tobě*
 - trochu jsem pohýbal se strukturou display_api - doplněny announcements. Ty by se hodilo umět editovat v admin gui
 - přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
-- logování transakcí - tabulka user, amount, transaction_details_text. Viditelné po kliknutí na uživatele.
 - chceme kategorie nechat jako jen jedno číslo, nebo nějak zapracovat, aby mohl být uživatel ve vícero kategoriích?
 - tlačítko pro vynulování coinů (případně řešitelné přes "krát 0", pokud by byly další režimy)
+- dodělat log
 
 ## Done To-Do pro kontrolu
 - displayed - změnit number input na checkbox
 - date select boxy pro iteraktivnější výběr času
-    - jsem to změnil, nejjednodušší možnou cestou, ale prohlížec neumožňuje výběr na sekundy a dělá v tom lehce bordel. Dá se použít flatpickr, ale toto je za mě dostatečné
+    - jsem to změnil, nejjednodušší možnou cestou, ale prohlížec neumožňuje výběr na sekundy úplně přesně a dělá v tom lehce bordel. Dá se použít flatpickr, ale toto je za mě dostatečné
 - nemožnost použít jeden tag vícekrát - takže do databáze dát čas posledního použití a pak kontrolovat jeslti to bylo včera nebo ne... to půjde prostě nějak přidat, jen se to bude muset změnit všude
     - v databázi je uložené i poslední použití skrz add_coinval, i bool "is_active". Tag se dá aktivovat pomocí "activate_coin" nebo skrz admin stránku, asi snad funkční řekl bych
-
+- logování transakcí - tabulka user, amount, transaction_details_text. Viditelné po kliknutí na uživatele.
+    - bude tam databáze
+    - líbí se mi přístup přes triggers, což by mělo být rychlejší a lepší vůči změnám, nyní mám nastavený trigger na "update", ale vlastně nevím, jestli tím nepřicházíme o nějakou informaci, třeba se takto nedozvíme jestli to bylo z coinu nebo od člověka a nemůžeme s tím pracovat, takže je to možná nepoužitelné
+    - log se zatím dá zobrazit v test_log
+    - a nevím co všechno vlastně chceme logovat, pokud jen změnu offsetů, tak to není takový problém doplnit jako kompletní přehled všech operací
 
 ## API features:
 ### API for end nodes
