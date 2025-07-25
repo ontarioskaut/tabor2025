@@ -19,11 +19,12 @@ TO-DO (věcí o kterých asi vím)
 - trochu jsem pohýbal se strukturou display_api - doplněny announcements. Ty by se hodilo umět editovat v admin gui
 - přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
 - date select boxy pro iteraktivnější výběr času
+    - jsem to změnil, nejjednodušší možnou cestou, ale prohlížec neumožňuje výběr na sekundy a dělá v tom lehce bordel. Dá se použít flatpickr, ale toto je za mě dostatečné
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
 - :check: displayed - změnit number input na checkbox
 - logování transakcí - tabulka user, amount, transaction_details_text. Viditelné po kliknutí na uživatele.
-- chceme kategorie nechat jako jen číslo, nebo nějak zapracovat, aby mohl být uživatel ve vícero kategoriích?
-
+- chceme kategorie nechat jako jen jedno číslo, nebo nějak zapracovat, aby mohl být uživatel ve vícero kategoriích?
+- tlačítko pro vynulování coinů (případně řešitelné přes "krát 0", pokud by byly další režimy)
 
 
 ## API features:
