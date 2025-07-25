@@ -18,7 +18,7 @@ TO-DO (věcí o kterých asi vím)
 - přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
 - date select boxy pro iteraktivnější výběr času
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
-- displayed - změnit number input na checkbox
+- :check: displayed - změnit number input na checkbox
 - logování transakcí - tabulka user, amount, transaction_details_text. Viditelné po kliknutí na uživatele.
 
 

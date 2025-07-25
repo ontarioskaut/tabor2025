@@ -401,12 +401,16 @@ def update_user():
     user_time_offset = request.form.get('user_time_offset')
     user_game_start_timestamp = request.form.get('user_game_start_timestamp')
     is_displayed = request.form.get('is_displayed')
-
     connection_db = sqlite3.connect(database_name)
     cursor_db = connection_db.cursor()
 
-    if not all([user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp, is_displayed]):
+    if not all([user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp]):
         return jsonify({"error": "All fields are required."}), 400
+
+    if is_displayed is None:
+        is_displayed_res = 0
+    else:
+        is_displayed_res = 1
 
     tags = cursor_db.execute('SELECT user_id, user_name FROM users WHERE user_tag_id = ?', (user_tag_id,)).fetchone()
     if tags is not None and tags[0] != int(user_id):
@@ -421,7 +425,7 @@ def update_user():
             UPDATE users
             SET user_tag_id = ?, user_name = ?, user_acro = ?, user_category = ?, user_time_offset = ?, user_game_start_timestamp = ?, is_displayed = ?
             WHERE user_id = ?
-        """, (user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp, is_displayed, user_id))
+        """, (user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp, is_displayed_res, user_id))
 
         connection_db.commit()
     except sqlite3.Error as e:
@@ -442,23 +446,27 @@ def add_user():
     user_game_start_timestamp = request.form.get('user_game_start_timestamp')
     is_displayed = request.form.get('is_displayed')
 
-
     connection_db = sqlite3.connect(database_name)
     cursor_db = connection_db.cursor()
 
-    if not all([user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp, is_displayed]):
+    if not all([user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp]):
         return jsonify({"error": "All fields are required."}), 400
+
+    if is_displayed is None:
+        is_displayed_res = 0
+    else:
+        is_displayed_res = 1
 
     tags = cursor_db.execute('SELECT user_id, user_name FROM users WHERE user_tag_id = ?', (user_tag_id,)).fetchone()
     if tags is not None:
         connection_db.close()
         return jsonify({"error":f"user tag is already in use, by user: {tags[0]}, {tags[1]}"}), 400
 
-    if not user_category.isnumeric() or not user_time_offset.isnumeric() or not is_displayed.isnumeric():
+    if not user_category.isnumeric() or not user_time_offset.isnumeric():
         return jsonify({"error":"category and offset must me integers"})
 
     try:
-        insert_user(cursor_db, user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp, is_displayed)
+        insert_user(cursor_db, user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp, is_displayed_res)
         connection_db.commit()
     except sqlite3.Error as e:
         connection_db.close()
