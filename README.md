@@ -5,13 +5,15 @@ něco tam je, můžeš se na to podívat a říct co bych měl udělat jinak
 jak to funguje?
 Celé je to flask a sqlite
 De facto jen operace nad databází.
-Tu v aktuální verzi vždy znovu otevřu, změním a přísutp k ní zavřu. Což by u mnoha požadavků najednou mohlo dělat problémy. ale zatím mi to přišlo jako nejjednodušší řešení. - jo, to stačí. víc bych to neřešil
 
+poznámky k implementaci
+- když má více lidí stejný akronym, tak se zobrazí jen poslední, protože to ukládám do množiny
 
 
 TO-DO (věcí o kterých asi vím)
 - logging - řešil bych pomocí python logging modulu a vypadá to být vpohodě
 - přesné návratové hodnoty - oproti našemu dokumentu v některých funkcích vracím offset ne atuální čas, klidně to změním - jo, to by bylo fajn
+    - fajn , upravím, jen v jakých jednotkách? sekundy? string? co ti vyhovuje nejvíc?
 - nemožnost použít jeden tag vícekrát - takže do databáze dát čas posledního použití a pak kontrolovat jeslti to bylo včera nebo ne... to půjde prostě nějak přidat, jen se to bude muset změnit všude
 - jsem si uvědomil že "category name" vlastně nikde nepoužívám, takže pokud nechceme kategorie jen čísílkové, tak tam přidám join a nějak to upravím - na tomto budu teď pracovat - budou tam select boxy u userů/coinů
 - trochu jsem pohýbal se strukturou display_api - doplněny announcements. Ty by se hodilo umět editovat v admin gui
@@ -20,29 +22,35 @@ TO-DO (věcí o kterých asi vím)
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
 - :check: displayed - změnit number input na checkbox
 - logování transakcí - tabulka user, amount, transaction_details_text. Viditelné po kliknutí na uživatele.
+- chceme kategorie nechat jako jen číslo, nebo nějak zapracovat, aby mohl být uživatel ve vícero kategoriích?
 
 
 
 ## API features:
 ### API for end nodes
-- get identification:
+- get identification (get_identification):
     - in: user_tag_id
     - out: {name, user_time}
-- odečet času:
+- odečet času (substract_time):
     - in: {time_to_substract, user_tag_id}
     - out: {status, user_time}
-- přičtení času z coinů:
+- přičtení času z coinů (add_coinval):
     - in: {coin_tag_id, user_tag_id}
     - out: {status, user_time, coin_value}
-- tracking:
+- přičtení času (add_time):
+    - in: {time to add, user_tag_id}
+    - out: {status, user_time}
+- tracking (not implemented):
     - in: {tracker_id, lon, lat}
     - out: status
-- set coin value:
+- set coin value (set_coinval):
     - in: {coin_tag_id, coin_value, category}
     - out: status
 - init user tag: (check if user exist, otherwise, create new with user_tag_id and incremental value as name)
     - in: user_tag_id
     - out: status
+
+
 
 ### Display API
 - get_time (current)
@@ -79,16 +87,34 @@ TO-DO (věcí o kterých asi vím)
 ```
 
 ### Admin dashboard API
-- user_admin
+- admin dashbord (/admin)
+    - in: nothing
+    - out: fillet html template
+- user admin (/admin/users)
     - in: nothing
     - out: filled html template:
-        - user list (name (edit), acro (edit), time (edit), user_tag_id (edit))
-        - edit -> modal box -> request -> done/failed
+        - user list (name, acro, time_offset, user_tag_id, time start, is_displayied) - possible to update all of it
         - add_user (řádek tabulky s polem)
-- tag_admin:
+        - bulk add time - add same time to checked users
+        - delete user
+    
+    - 
+- coin admin:
     - in: nothing
     - out: filled html template:
-        - tag: value list + edit + cathegories (bulk select => set bulk)
+        - tag: value list + edit + categories (bulk select => set bulk)
+        - update
+        - add
+        - delete
+- users category admin
+    - in: nothing
+    - out: filled html template:
+        - name, number
+
+        - add
+        - update
+        - delete
+        - option to add time to all users in specified categories
 
 - set_user_field:
     - in: {user_id, field_name, new_value}

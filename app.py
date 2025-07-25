@@ -173,9 +173,6 @@ def substract_time():
     time_to_subtract = request.args.get('time_to_subtract')
     user_tag_id = request.args.get('user_tag_id')
 
-    print(time_to_subtract)
-    print(user_tag_id)
-
     return addition_of_time(user_tag_id, time_to_subtract, False)
 
 
@@ -187,9 +184,9 @@ def add_time():
     return addition_of_time(user_tag_id, time_to_add, True)
 
 
-
 @app.route('/add_coinval', methods=['GET'])
 def add_coinval():
+    # it would be prettier to use "addition of time" again, but this way, i don't have to open database two times
     coin_tag_id = request.args.get('coin_tag_id')
     user_tag_id = request.args.get('user_tag_id')
     if not coin_tag_id or not user_tag_id:
@@ -200,7 +197,6 @@ def add_coinval():
 
     cursor_db.execute("SELECT user_time_offset FROM users WHERE user_tag_id = ?", (user_tag_id,))
     user = cursor_db.fetchone()
-
 
     cursor_db.execute("SELECT coin_value FROM coins WHERE coin_tag_id = ?", (coin_tag_id,))
     coin = cursor_db.fetchone()
@@ -400,7 +396,7 @@ def update_user():
     user_category = request.form.get('user_category')
     user_time_offset = request.form.get('user_time_offset')
     user_game_start_timestamp = request.form.get('user_game_start_timestamp')
-    is_displayed = request.form.get('is_displayed')
+    is_displayed = request.form.get('is_displayed') #returns string "on" or None
     connection_db = sqlite3.connect(database_name)
     cursor_db = connection_db.cursor()
 
@@ -444,7 +440,7 @@ def add_user():
     user_category = request.form.get('user_category')
     user_time_offset = request.form.get('user_time_offset')
     user_game_start_timestamp = request.form.get('user_game_start_timestamp')
-    is_displayed = request.form.get('is_displayed')
+    is_displayed = request.form.get('is_displayed') #returns string "on" or None
 
     connection_db = sqlite3.connect(database_name)
     cursor_db = connection_db.cursor()
@@ -492,31 +488,6 @@ def delete_user():
         return jsonify({"error": f"An error occurred: {e}"}), 500
     finally:
         connection_db.close()
-
-# @app.route('/bulk_set_coin_field', methods=['POST'])
-# def bulk_set_coin_field():
-#     data = request.get_json()
-#     coin_ids = data.get('coin_ids')
-#     field_name = data.get('field_name')
-#     new_value = data.get('new_value')
-
-#     if not coin_ids or not field_name or not new_value:
-#         return jsonify({"error": "coin_ids, field_name, and new_value are required"}), 400
-
-#     connection_db = sqlite3.connect(database_name)
-#     cursor_db = connection_db.cursor()
-
-#     try:
-#         for coin_id in coin_ids:
-#             query = f"UPDATE coins SET {field_name} = ? WHERE coin_id = ?"
-#             cursor_db.execute(query, (new_value, coin_id))
-
-#         connection_db.commit()
-#         return jsonify({"status": "success"})
-#     except sqlite3.Error as e:
-#         return jsonify({"status": "error", "message": str(e)}), 500
-#     finally:
-#         connection_db.close()
 
 @app.route('/bulk_add_user_time', methods=['POST'])
 def bulk_add_user_time():
