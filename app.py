@@ -22,7 +22,7 @@ def create_user_db(cur):
         user_category INTEGER,
         user_time_offset INTEGER,
         user_game_start_timestamp DATETIME,
-        is_displayed INTEGER
+        is_displayed BOOLEAN
     )
     """)
 def create_category_db(cur):
@@ -38,7 +38,9 @@ def create_coins_db(cur):
         coin_id INTEGER PRIMARY KEY,
         coin_tag_id TEXT,
         coin_value INTEGER,
-        coin_category INTEGER
+        coin_category INTEGER,
+        last_used DATETIME,
+        is_active BOOLEAN
     )""")
     
 def create_coin_category_db(cur):
@@ -70,7 +72,14 @@ def insert_coin(cur, tag_id: str, value: int, category: int):
     cur.execute(f"SELECT MAX(coin_id) FROM coins")
     new_id = cur.fetchone()[0]
     new_id = new_id + 1 if new_id is not None else 1
-    temp = f"{new_id}, '{tag_id}', {value}, {category}"
+    temp = f"{new_id}, '{tag_id}', {value}, {category}, '1970-01-01 00:00:00', 0"
+    cur.execute("Insert INTO coins VALUES (" + temp + ")")
+
+def insert_coin_full(cur, tag_id: str, value: int, category: int, last_used:str, is_active: int):
+    cur.execute(f"SELECT MAX(coin_id) FROM coins")
+    new_id = cur.fetchone()[0]
+    new_id = new_id + 1 if new_id is not None else 1
+    temp = f"{new_id}, '{tag_id}', {value}, {category}, '{last_used}', {is_active}"
     cur.execute("Insert INTO coins VALUES (" + temp + ")")
 
 
@@ -198,13 +207,24 @@ def add_coinval():
     cursor_db.execute("SELECT user_time_offset FROM users WHERE user_tag_id = ?", (user_tag_id,))
     user = cursor_db.fetchone()
 
-    cursor_db.execute("SELECT coin_value FROM coins WHERE coin_tag_id = ?", (coin_tag_id,))
+    cursor_db.execute("SELECT coin_value, is_active FROM coins WHERE coin_tag_id = ?", (coin_tag_id,))
     coin = cursor_db.fetchone()
 
 
     if user and coin:
+        if len(coin) < 2:
+            connection_db.close()
+            return jsonify({"error": "problem, noooo"}), 404
+        if coin[1] == 0:
+            connection_db.close()
+            return jsonify({"error": "coin is inactive"}), 404
         new_offset = coin[0] + user[0]
         cursor_db.execute("UPDATE users SET user_time_offset = ? WHERE user_tag_id = ?", (new_offset, user_tag_id))
+        
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S') 
+        cursor_db.execute("UPDATE coins SET last_used = ?, is_active = ? WHERE coin_tag_id = ?", (current_time, 0, coin_tag_id))
+
+        
         connection_db.commit()
         connection_db.close()
         return jsonify({"status": "success", "user_time": new_offset})
@@ -233,8 +253,8 @@ def set_coinval():
     cursor_db = connection_db.cursor()
 
     cursor_db.execute("SELECT coin_tag_id FROM coins WHERE coin_tag_id = ?", (coin_tag_id,))
-    user = cursor_db.fetchone()
-    if user is not None: # coin_tag_id is already in database
+    coin = cursor_db.fetchone()
+    if coin is not None: # coin_tag_id is already in database
         cursor_db.execute("UPDATE coins SET coin_value = ?, coin_category = ? WHERE coin_tag_id = ?", (coin_value, category, coin_tag_id))
     else:
         insert_coin(cursor_db, coin_tag_id, coin_value, category)
@@ -242,9 +262,28 @@ def set_coinval():
     connection_db.commit()
     connection_db.close()
 
-
     return jsonify({"status": "success"})
 
+@app.route('/activate_coin', methods=['GET'])
+def activate_coin():
+    coin_tag_id = request.args.get('coin_tag_id')
+
+    if coin_tag_id is None:
+        return jsonify({"error": "coin tag is required"})
+
+    connection_db = sqlite3.connect(database_name)
+    cursor_db = connection_db.cursor()
+    cursor_db.execute("SELECT coin_tag_id FROM coins WHERE coin_tag_id = ?", (coin_tag_id,))
+    coin = cursor_db.fetchone()
+    if coin is None:
+        insert_coin(cursor_db, coin_tag_id, 0, 0)
+    
+    cursor_db.execute("UPDATE is_active FROM coins WHERE coin_tag_id = ?", (1,))
+
+    connection_db.commit()
+    connection_db.close()
+
+    return jsonify({"status": "success"})
 
 
 @app.route('/init_user_tag', methods=['GET'])
@@ -546,11 +585,18 @@ def update_coin():
     elem_tag_id = request.form.get('coin_tag_id')
     elem_value = request.form.get('coin_value')
     elem_category = request.form.get('coin_category')
+    elem_last_used = request.form.get('last_used')
+    elem_is_active = request.form.get('is_active')
+
+    if elem_is_active is None:
+        elem_is_active_int = 0
+    else:
+        elem_is_active_int = 1
 
     connection_db = sqlite3.connect(database_name)
     cursor_db = connection_db.cursor()
 
-    if not all([elem_id, elem_tag_id, elem_value, elem_category]):
+    if not all([elem_id, elem_tag_id, elem_value, elem_category, elem_last_used]):
         return jsonify({"error": "All fields are required."}), 400
 
     tags = cursor_db.execute('SELECT coin_id FROM coins WHERE coin_tag_id = ?', (elem_tag_id,)).fetchone()
@@ -564,9 +610,9 @@ def update_coin():
     try:
         cursor_db.execute("""
             UPDATE coins
-            SET coin_tag_id = ?, coin_value = ?, coin_category = ?
+            SET coin_tag_id = ?, coin_value = ?, coin_category = ?, last_used = ?, is_active = ?
             WHERE coin_id = ?
-        """, (elem_tag_id, elem_value, elem_category, elem_id))
+        """, (elem_tag_id, elem_value, elem_category, elem_last_used, elem_is_active_int, elem_id))
 
         connection_db.commit()
     except sqlite3.Error as e:
@@ -582,16 +628,18 @@ def add_coin():
     elem_tag_id = request.form.get('coin_tag_id')
     elem_value = request.form.get('coin_value')
     elem_category = request.form.get('coin_category')
+    elem_last_used = request.form.get('last_used')
+    elem_activity = request.form.get('is_active')
 
-    print("hej")
-    print(elem_tag_id)
-    print(elem_value)
-    print(elem_category)
+    if elem_activity is None:
+        elem_activity_int = 0
+    else:
+        elem_activity_int = 1
 
     connection_db = sqlite3.connect(database_name)
     cursor_db = connection_db.cursor()
 
-    if not all([elem_tag_id, elem_value, elem_category]):
+    if not all([elem_tag_id, elem_value, elem_category, elem_last_used]):
         return jsonify({"error": "All fields are required."}), 400
 
     tags = cursor_db.execute('SELECT coin_id FROM coins WHERE coin_tag_id = ?', (elem_tag_id,)).fetchone()
@@ -603,7 +651,7 @@ def add_coin():
         return jsonify({"error":"category and value must me integers"})
 
     try:
-        insert_coin(cursor_db, elem_tag_id, elem_value, elem_category)
+        insert_coin_full(cursor_db, elem_tag_id, elem_value, elem_category, elem_last_used, elem_activity_int)
         connection_db.commit()
     except sqlite3.Error as e:
         connection_db.close()

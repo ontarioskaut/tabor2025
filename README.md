@@ -8,17 +8,24 @@ De facto jen operace nad databází.
 
 poznámky k implementaci
 - když má více lidí stejný akronym, tak se zobrazí jen poslední, protože to ukládám do množiny
+- boolean je jen Integer, kdekoli jdou používat hodnoty False a True jako 0 a 1, ale nepoužívám je
+- Datetime se automaticky vybralo, jak se bude ukládat je to TEXT v ISO formátu. K hodnotám se dá přistupovat i pomocí sqlite, ale já tam používám python datetime
+
+- coin tag může být zároveň user tag, vadí nám to?
+- coin se initializuje pomocí set_coinval nebo activate_coin, u druhého se nastaví "na nulu"
+- možnost add_user a add_coin by se asi primárně neměli používat, ideální je to nejdřív iniciovat přes init_user, nebo operaci s coinem
 
 
 TO-DO (věcí o kterých asi vím)
 - logging - řešil bych pomocí python logging modulu a vypadá to být vpohodě
 - přesné návratové hodnoty - oproti našemu dokumentu v některých funkcích vracím offset ne atuální čas, klidně to změním - jo, to by bylo fajn
     - fajn , upravím, jen v jakých jednotkách? sekundy? string? co ti vyhovuje nejvíc?
-- nemožnost použít jeden tag vícekrát - takže do databáze dát čas posledního použití a pak kontrolovat jeslti to bylo včera nebo ne... to půjde prostě nějak přidat, jen se to bude muset změnit všude
+- :check: nemožnost použít jeden tag vícekrát - takže do databáze dát čas posledního použití a pak kontrolovat jeslti to bylo včera nebo ne... to půjde prostě nějak přidat, jen se to bude muset změnit všude
+    - v databázi je uložené i poslední použití skrz add_coinval, i bool "is_active". Tag se dá aktivovat pomocí "activate_coin" nebo skrz admin stránku, asi snad funkční řekl bych
 - jsem si uvědomil že "category name" vlastně nikde nepoužívám, takže pokud nechceme kategorie jen čísílkové, tak tam přidám join a nějak to upravím - na tomto budu teď pracovat - budou tam select boxy u userů/coinů
 - trochu jsem pohýbal se strukturou display_api - doplněny announcements. Ty by se hodilo umět editovat v admin gui
 - přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
-- date select boxy pro iteraktivnější výběr času
+- :check: (asi) date select boxy pro iteraktivnější výběr času
     - jsem to změnil, nejjednodušší možnou cestou, ale prohlížec neumožňuje výběr na sekundy a dělá v tom lehce bordel. Dá se použít flatpickr, ale toto je za mě dostatečné
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
 - :check: displayed - změnit number input na checkbox
@@ -47,6 +54,9 @@ TO-DO (věcí o kterých asi vím)
 - set coin value (set_coinval):
     - in: {coin_tag_id, coin_value, category}
     - out: status
+- activate coin
+    -in: {coin_tag_id}
+    -out: status
 - init user tag: (check if user exist, otherwise, create new with user_tag_id and incremental value as name)
     - in: user_tag_id
     - out: status
