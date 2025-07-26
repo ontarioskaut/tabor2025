@@ -22,11 +22,15 @@ De facto jen operace nad databází.
     - fajn , upravím, jen v **jakých jednotkách**? sekundy? string? co ti vyhovuje nejvíc?
 - jsem si uvědomil že "category name" vlastně nikde nepoužívám, takže pokud nechceme kategorie jen čísílkové, tak tam přidám join a nějak to upravím - na tomto budu teď pracovat - budou tam select boxy u userů/coinů -*upříměn nevím co tím myslíš, ale nechávám to na tobě, já tam dodělal samotný join a jde vedle toho vidět jméno*
 - trochu jsem pohýbal se strukturou display_api - doplněny announcements. Ty by se hodilo umět editovat v admin gui
-    - v tu chvíli si to chce pamatovat nastavení a annoucments i mimo kód, takže mít dvě další tabulky v databázi
+    - v tu chvíli si to chce pamatovat nastavení a annoucments i mimo kód, takže mít dvě další tabulky v databázi...
 - přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
 - chceme kategorie nechat jako jen jedno číslo, nebo nějak zapracovat, aby mohl být uživatel ve vícero kategoriích?
-- tlačítko pro vynulování coinů (případně řešitelné přes "krát 0", pokud by byly další režimy)
+- funkce pro vynulování coinů (případně řešitelné přes "krát 0", pokud by byly další režimy)
+    - to souvisí s tím, jak chceme pracovat s coiny, jestli bude jednodušší to spravovat přes admina nebo primárně přes nody...
+    - předtím jsi mluvil o nfc readru na mobil, kde to budeš upravovat, to mi přijde nešikovné, protože to pak musí být přes https a řešit tam certifikáty, jednodušší je za mě použít jinou čtečku na přečtení tagu a pak udělat jednoduchou stránku do které zkopíruješ tag_id a klikneš na aktivovat... (tedy vlastně "activate_coin" akorát nejen v příkazové řádnce )
+- show_time v budoucnu bude stránka, s real-time časovačema a jmény, co jde hodit na promítačku / televizi (tedy monitor)
+
 
 ## Done To-Do pro kontrolu
 - displayed - změnit number input na checkbox

@@ -117,6 +117,23 @@ def insert_coin(cur, tag_id: str, value: int, category: int, last_used:str = '19
     temp = f"{new_id}, '{tag_id}', {value}, {category}, '{last_used}', {is_active}"
     cur.execute("Insert INTO coins VALUES (" + temp + ")")
 
+def seconds_to_text(total_seconds: int):
+    is_negative = total_seconds < 0
+    abs_seconds = abs(total_seconds)
+
+    hours = abs_seconds // 3600
+    minutes = (abs_seconds % 3600) // 60
+    seconds = abs_seconds % 60
+
+    # Format to HH:MM:SS
+    formatted_time = f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+
+    if is_negative:
+        return f"-{formatted_time}"
+    else:
+        return formatted_time
+
+
 
 
 def test_show_users(cur):
@@ -450,6 +467,7 @@ def dashboard():
     """
     return render_template_string(html)
 
+# -----------------------------users-------------------------------------------
 
 @app.route('/admin/users', methods=['GET'])
 def admin_users():
@@ -1060,6 +1078,7 @@ def bulk_add_coin_time_category():
     finally:
         connection_db.close()
 
+# --------------------------------- other--------------------------------------
 
 @app.route('/show_logs', methods=['GET'])
 def show_logs():
@@ -1084,8 +1103,6 @@ def show_logs():
     return render_template('logs_tmp.html', logs=rows)
 
 
-
-
 @app.route('/get_logs', methods=['GET'])
 def show_logs_json():
     connection_db = sqlite3.connect(database_name)
@@ -1097,6 +1114,27 @@ def show_logs_json():
     connection_db.close()
 
     return result
+
+
+@app.route('/show_times', methods=['GET'])
+def show_times():
+    connection_db = sqlite3.connect(database_name)
+    cursor_db = connection_db.cursor()
+
+    rows = cursor_db.execute("""SELECT user_name, user_time_offset, user_game_start_timestamp FROM users """).fetchall()
+    connection_db.close()
+
+    result = []
+
+
+    for name, offset, start in rows:
+        time_int = offset - (datetime.now() - datetime.fromisoformat(start)).total_seconds()
+        temp_dict = {}
+        temp_dict['name'] = name
+        temp_dict['time'] = seconds_to_text(time_int)
+        result.append(temp_dict)
+
+    return render_template("times_tiles_tmp.html", users=result)
 
 
 

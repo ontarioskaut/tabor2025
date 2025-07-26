@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User times</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <script src="/static/js/bootstrap.js"></script>
+    <style>
+        /* Optional: Custom styles to make the cards look a bit nicer */
+        body {
+            background-color: #f8f9fa; /* Light background */
+        }
+        .user-card {
+            box-shadow: 0 4px 8px rgba(0,0,0,.05); /* Subtle shadow for cards */
+            transition: transform 0.2s ease-in-out; /* Smooth hover effect */
+        }
+        .user-card:hover {
+            transform: translateY(-5px); /* Lift card on hover */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">User Scores</h1>
+
+        <div class="row">
+            {% for user in users %}
+            <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
+                <div class="card user-card h-100 text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">{{ user.name }}</h5>
+                        <p class="card-text fs-4 fw-bold">{{ user.time }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>
