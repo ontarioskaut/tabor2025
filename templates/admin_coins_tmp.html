@@ -87,6 +87,7 @@
                     <th>Coin Tag ID</th>
                     <th>Coin Value</th>
                     <th>Coin Category</th>
+                    <th>Category name</th>
                     <th>Last used</th>
                     <th>Is active</th>
 
@@ -102,7 +103,8 @@
                         <td class="align-middle">{{ coin['coin_id'] }}</td>
                         <td><input type="text" name="coin_tag_id" value="{{ coin['coin_tag_id'] }}" class="form-control"></td>
                         <td><input type="text" name="coin_value" value="{{ coin['coin_value'] }}" class="form-control"></td>
-                        <td><input type="text" name="coin_category" value="{{ coin['coin_category'] }}" class="form-control"></td>
+                        <td><input type="text" name="coin_category" value="{{ coin['coin_category_id'] }}" class="form-control"></td>
+                        <td>{{ coin['coin_category_name'] }}</td>
                         <td><input type="datetime-local" name="last_used" value="{{ coin['last_used'] }}" class="form-control"></td>
                         <td><input type="checkbox" name="is_active" value="1" {% if coin['is_active'] == 1 %}checked{% endif %} class="form-check-input"></td>
                         
@@ -127,6 +129,7 @@
                         <td><input type="text" name="coin_tag_id" class="form-control" placeholder="Tag ID" required></td>
                         <td><input type="text" name="coin_value" class="form-control" placeholder="Value" value="1000" required></td>
                         <td><input type="text" name="coin_category" class="form-control" placeholder="Category" value="0" required></td>
+                        <td></td>
                         <td><input type="datetime-local" name="last_used" value="1970-01-01 00:00:00" required class="form-control"></td>
                         <td><input type="checkbox" name="is_active" class="form-check-input"></td>
                         <td><button type="submit" class="btn btn-primary">Add Coin</button></td>

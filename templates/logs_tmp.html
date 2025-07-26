@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Logs</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <script src="/static/js/bootstrap.js"></script>
+   
+</head>
+
+<body class="bg-light">
+    <div class="container mt-4">
+        <h1 class="mb-4">Logs</h1>
+
+        <div class="d-flex align-items-center mb-3">
+            <span>Filter by user: </span>
+            <form action="/show_logs" method="get" class="flex-grow-1 me-2">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="user_id" placeholder="Enter User ID, leave blank for all logs" autofocus>
+                </div>
+            </form>
+            
+        </div>
+
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>id</th>
+                    <th>timestamp</th>
+                    <th>user id</th>
+                    <th> user name</th>
+                    <th>amount</th>
+                    <th>details</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log['id'] }}</td>
+                    <td>{{ log['timestamp'] }}</td>
+                    <td>{{ log['user_id'] }}</td>
+                    <td>{{ log['user_name'] }}</td>
+                    <td>{{ log['amount'] }}</td>
+                    <td>{{ log['details'] }}</td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -7,10 +7,9 @@ from datetime import datetime
 
 database_name = "database.db"
 
-
-
-#connection_db = sqlite3.connect("database.db")
-#cursor_db = connection_db.cursor()
+# -----------------------------------------------------------------------------
+#                            creation and definition of tables
+# -----------------------------------------------------------------------------
 
 def create_user_db(cur):
     cur.execute("""
@@ -32,6 +31,10 @@ def create_category_db(cur):
         user_category_name TEXT
     )""")
 
+    cur.execute("""
+    INSERT OR IGNORE INTO users_category (user_category_id, user_category_name) VALUES (0, 'no_category')
+    """)
+
 def create_coins_db(cur):
     cur.execute("""
     CREATE TABLE IF NOT EXISTS coins (
@@ -49,6 +52,11 @@ def create_coin_category_db(cur):
         coin_category_id INTEGER PRIMARY KEY,
         coin_category_name TEXT
     )""")
+    cur.execute("""
+        INSERT OR IGNORE INTO coin_category (coin_category_id, coin_category_name) VALUES (0, 'no_category')
+    """)    
+
+    
 
 def create_log_table(cur):
     cur.execute("""
@@ -65,6 +73,7 @@ def create_log_triggers(cur):
     CREATE TRIGGER IF NOT EXISTS user_offset_update
         AFTER UPDATE
         ON users
+        WHEN NEW.user_time_offset <> OLD.user_time_offset
     BEGIN
         INSERT INTO logs (timestamp, user_id, amount, details)
         VALUES (DATETIME('NOW'), NEW.user_id, NEW.user_time_offset - OLD.user_time_offset, 'updated offset');
@@ -82,6 +91,7 @@ def create_tables(name: str):
     create_log_table(cursor_db)
     create_log_triggers(cursor_db)
 
+    connection_db.commit()
     cursor_db.close()
 
 
@@ -93,14 +103,14 @@ def insert_user(cur, tag_id: str, name: str, acro: str, category: int, offset: i
     cur.execute("Insert INTO users VALUES (" + temp + ")")
 
     
-def insert_coin(cur, tag_id: str, value: int, category: int):
-    cur.execute(f"SELECT MAX(coin_id) FROM coins")
-    new_id = cur.fetchone()[0]
-    new_id = new_id + 1 if new_id is not None else 1
-    temp = f"{new_id}, '{tag_id}', {value}, {category}, '1970-01-01 00:00:00', 0"
-    cur.execute("Insert INTO coins VALUES (" + temp + ")")
+# def insert_coin(cur, tag_id: str, value: int, category: int):
+#     cur.execute(f"SELECT MAX(coin_id) FROM coins")
+#     new_id = cur.fetchone()[0]
+#     new_id = new_id + 1 if new_id is not None else 1
+#     temp = f"{new_id}, '{tag_id}', {value}, {category}, '1970-01-01 00:00:00', 0"
+#     cur.execute("Insert INTO coins VALUES (" + temp + ")")
 
-def insert_coin_full(cur, tag_id: str, value: int, category: int, last_used:str, is_active: int):
+def insert_coin(cur, tag_id: str, value: int, category: int, last_used:str = '1970-01-01 00:00:00', is_active: int = 0):
     cur.execute(f"SELECT MAX(coin_id) FROM coins")
     new_id = cur.fetchone()[0]
     new_id = new_id + 1 if new_id is not None else 1
@@ -303,7 +313,7 @@ def activate_coin():
     if coin is None:
         insert_coin(cursor_db, coin_tag_id, 0, 0)
     
-    cursor_db.execute("UPDATE is_active FROM coins WHERE coin_tag_id = ?", (1,))
+    cursor_db.execute("UPDATE coins SET is_active = 1 WHERE coin_tag_id = ?", (coin_tag_id,))
 
     connection_db.commit()
     connection_db.close()
@@ -331,10 +341,7 @@ def init_user_tag():
         response["status"] = "error"
         response["text"] = "user already exist"
     else:
-        #cursor_db.execute(f"SELECT MAX(user_id) FROM users")
-        #line_count = cursor_db.fetchone()[0]
         response["status"] = "success"
-
         insert_user(cursor_db, user_tag_id, "initname", "x", 0, 0, datetime.now(), 0)
     
     connection_db.commit()
@@ -346,6 +353,26 @@ def init_user_tag():
 #------------------------------------------------------------------------------
 #-----------------------------Display api--------------
 #------------------------------------------------------------------------------
+@app.route('/get_time_simple', methods=['GET'])
+def get_time_simple():
+    connection_db = sqlite3.connect(database_name)
+    cursor_db = connection_db.cursor()
+    cursor_db.execute("SELECT user_acro, user_time_offset, user_game_start_timestamp, is_displayed FROM users")
+    rows = cursor_db.fetchall()
+    connection_db.close()
+
+    user_dict = {}
+
+
+    for acro, offset, start, disp in rows:
+        if int(disp) == 0:
+            continue
+        time_diff = (datetime.now() - datetime.fromisoformat(start)).total_seconds()
+
+        user_dict[acro] = -round(time_diff) + int(offset)
+
+    return jsonify(user_dict)
+
 @app.route('/get_time', methods=['GET'])
 def get_time():
     connection_db = sqlite3.connect(database_name)
@@ -355,7 +382,6 @@ def get_time():
     connection_db.close()
 
     user_dict = {}
-
 
     for acro, offset, start, disp in rows:
         if int(disp) == 0:
@@ -415,8 +441,9 @@ def dashboard():
         <ul>
             <li><a href="/admin/users">Users</a></li>
             <li><a href="/admin/coins">Coins</a></li>
-            <li><a href="/admin/categories_user">user categories</a></li>
-            <li><a href="/admin/categories_coin">Locoin categoriesgs</a></li>
+            <li><a href="/admin/categories_user">User categories</a></li>
+            <li><a href="/admin/categories_coin">Coin categoriesgs</a></li>
+            <li><a href="/show_logs">Logs</a></li>
         </ul>
     </body>
     </html>
@@ -431,7 +458,11 @@ def admin_users():
     cursor_db = connection_db.cursor()
 
 
-    rows = cursor_db.execute('SELECT * FROM users').fetchall()
+    #rows = cursor_db.execute('SELECT * FROM users').fetchall()
+    rows = cursor_db.execute("""SELECT users.user_id, users.user_tag_id, users.user_name, users.user_acro, users.user_category, users_category.user_category_name, users.user_time_offset, users.user_game_start_timestamp, users.is_displayed
+        FROM users
+        JOIN users_category ON users.user_category = users_category.user_category_id
+    """).fetchall()    
     
     connection_db.close()
 
@@ -448,7 +479,6 @@ def admin_users():
             except Exception as e:
                 print(f"Error parsing timestamp: {raw_time} -> {e}")
 
-    #return render_template('user_db_tmp.html', users=rows)
     return render_template('admin_users_tmp.html', users=user_rows, current_time=current_time)
     
 @app.route('/admin/update_user', methods=['POST'])
@@ -596,8 +626,12 @@ def admin_coins():
     connection_db = sqlite3.connect(database_name)
     connection_db.row_factory = sqlite3.Row
     cursor_db = connection_db.cursor()
-
-    rows = cursor_db.execute('SELECT * FROM coins').fetchall()
+    #rows = cursor_db.execute('SELECT * FROM (coins JOIN coin_category ON coins.coin_category = coin_category.coin_category_id) ').fetchall()
+    rows = cursor_db.execute("""SELECT coins.coin_id, coins.coin_tag_id, coins.coin_value, coins.last_used, coins.is_active,
+       coin_category.coin_category_id, coin_category.coin_category_name
+        FROM coins
+        JOIN coin_category ON coins.coin_category = coin_category.coin_category_id
+    """).fetchall()    
     
     connection_db.close()
 
@@ -676,7 +710,7 @@ def add_coin():
         return jsonify({"error":"category and value must me integers"})
 
     try:
-        insert_coin_full(cursor_db, elem_tag_id, elem_value, elem_category, elem_last_used, elem_activity_int)
+        insert_coin(cursor_db, elem_tag_id, elem_value, elem_category, elem_last_used, elem_activity_int)
         connection_db.commit()
     except sqlite3.Error as e:
         connection_db.close()
@@ -913,10 +947,6 @@ def admin_coin_categories():
     
     connection_db.close()
 
-    for row in rows:
-        print(row['coin_category_id'])
-        print(row['coin_category_name'])
-
     return render_template('admin_cat_coin_tmp.html', categories=rows)
     
 
@@ -931,12 +961,6 @@ def update_coin_category():
 
     if not all([elem_id, elem_name]):
         return jsonify({"error": "All fields are required."}), 400
-
-    print("printing in upadate")
-    print(elem_id)
-    print(elem_id)
-
-    print(elem_name)
 
     try:
         cursor_db.execute("""
@@ -1037,8 +1061,33 @@ def bulk_add_coin_time_category():
         connection_db.close()
 
 
-@app.route('/test_log', methods=['GET'])
-def test_log():
+@app.route('/show_logs', methods=['GET'])
+def show_logs():
+    user = request.args.get('user_id')
+
+
+    if user and not user.isnumeric():
+        return jsonify({"status": "error", "message": "wrong user id"}), 500
+    
+    connection_db = sqlite3.connect(database_name)
+    connection_db.row_factory = sqlite3.Row
+    cursor_db = connection_db.cursor()
+
+
+    if user is None or user == "":
+        rows = cursor_db.execute('SELECT * FROM (logs JOIN users ON logs.user_id = users.user_id) ORDER BY id DESC').fetchall()
+    else:
+        rows = cursor_db.execute('SELECT * FROM (logs JOIN users ON logs.user_id = users.user_id) WHERE user_id = ? ORDER BY id DESC', (user,)).fetchall()
+    
+    connection_db.close()
+
+    return render_template('logs_tmp.html', logs=rows)
+
+
+
+
+@app.route('/get_logs', methods=['GET'])
+def show_logs_json():
     connection_db = sqlite3.connect(database_name)
     cursor_db = connection_db.cursor()
 

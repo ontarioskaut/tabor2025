@@ -14,18 +14,19 @@ De facto jen operace nad databází.
 - možnost add_user a add_coin by se asi primárně neměli používat, ideální je to nejdřív iniciovat přes init_user, nebo operaci s coinem
 - https://sqlite.org/autoinc.html tvrdí, že se primary key dá jako "o jedna vyšší" automaticky a nemusím to dělat já... ale asi to tak už nechám. AUTOINCREMENT je prý zbytečný a jen zajišťuje, aby ID nemohlo být použito už nikdy znovu, ani po vymazání nějakého prvku, což podle mě nechceme, navíc sami tvrdí že to je extra CPU
     - integer primary key je automaticky ROWID a dá se tak k němu přistupovat
+- na mnoha místech by bylo pěknější si volat ty funkce navzájem, třeba z bulk_time_add volat prostě jen add_time na jednotlivé usery, tam by se ale databáze otevírala sem tam což nechci, a udělat dodatečnou funkci by nebyl problém, ale asi mi to přijde zbytečné
 
 
 ## TO-DO (věcí o kterých asi vím)
 - přesné návratové hodnoty - oproti našemu dokumentu v některých funkcích vracím offset ne atuální čas, klidně to změním - jo, to by bylo fajn
     - fajn , upravím, jen v **jakých jednotkách**? sekundy? string? co ti vyhovuje nejvíc?
-- jsem si uvědomil že "category name" vlastně nikde nepoužívám, takže pokud nechceme kategorie jen čísílkové, tak tam přidám join a nějak to upravím - na tomto budu teď pracovat - budou tam select boxy u userů/coinů -*upříměn nevím co tím myslíš, ale nechávám to na tobě*
+- jsem si uvědomil že "category name" vlastně nikde nepoužívám, takže pokud nechceme kategorie jen čísílkové, tak tam přidám join a nějak to upravím - na tomto budu teď pracovat - budou tam select boxy u userů/coinů -*upříměn nevím co tím myslíš, ale nechávám to na tobě, já tam dodělal samotný join a jde vedle toho vidět jméno*
 - trochu jsem pohýbal se strukturou display_api - doplněny announcements. Ty by se hodilo umět editovat v admin gui
+    - v tu chvíli si to chce pamatovat nastavení a annoucments i mimo kód, takže mít dvě další tabulky v databázi
 - přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
 - chceme kategorie nechat jako jen jedno číslo, nebo nějak zapracovat, aby mohl být uživatel ve vícero kategoriích?
 - tlačítko pro vynulování coinů (případně řešitelné přes "krát 0", pokud by byly další režimy)
-- dodělat log
 
 ## Done To-Do pro kontrolu
 - displayed - změnit number input na checkbox
@@ -38,6 +39,7 @@ De facto jen operace nad databází.
     - líbí se mi přístup přes triggers, což by mělo být rychlejší a lepší vůči změnám, nyní mám nastavený trigger na "update", ale vlastně nevím, jestli tím nepřicházíme o nějakou informaci, třeba se takto nedozvíme jestli to bylo z coinu nebo od člověka a nemůžeme s tím pracovat, takže je to možná nepoužitelné
     - log se zatím dá zobrazit v test_log
     - a nevím co všechno vlastně chceme logovat, pokud jen změnu offsetů, tak to není takový problém doplnit jako kompletní přehled všech operací
+    - kdyžtak je k to na /show_logs a je tam filtr na uživatele
 
 ## API features:
 ### API for end nodes
