@@ -1137,7 +1137,38 @@ def show_times():
     return render_template("times_tiles_tmp.html", users=result)
 
 
+@app.route('/show_times_02', methods=['GET'])
+def show_times_02():
+    return render_template("times_tiles_v02.html")
 
+
+@app.route('/show_times_api', methods=['GET'])
+def api_times_init():
+    connection_db = sqlite3.connect(database_name)
+    cursor_db = connection_db.cursor()
+
+    rows = cursor_db.execute("""
+        SELECT user_name, user_time_offset, user_game_start_timestamp 
+        FROM users
+    """).fetchall()
+    connection_db.close()
+
+    result = []
+    for name, offset, start in rows:
+        result.append({
+            'name': name,
+            'offset': offset,
+            'start': start  # ISO format is fine
+        })
+    return jsonify(result)
+
+
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 if __name__ == '__main__':
     print("start")
     create_tables(database_name)

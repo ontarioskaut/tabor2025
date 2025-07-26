@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User times</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <script src="/static/js/bootstrap.js"></script>
+    <style>
+        /* Optional: Custom styles to make the cards look a bit nicer */
+        body {
+            background-color: #f8f9fa; /* Light background */
+        }
+        .user-card {
+            box-shadow: 0 4px 8px rgba(0,0,0,.05); /* Subtle shadow for cards */
+            transition: transform 0.2s ease-in-out; /* Smooth hover effect */
+        }
+        .user-card:hover {
+            transform: translateY(-5px); /* Lift card on hover */
+        }
+    </style>
+    <script>
+    let userData = [];
+
+    function formatTime(seconds) {
+        if (seconds < 0) seconds = 0;
+        const hours = Math.floor(seconds / 3600)
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = Math.floor(seconds % 60);
+        const tenths = Math.floor((seconds % 1) * 10);
+        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${tenths}`;
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('userGrid');
+        grid.innerHTML = '';
+
+        userData.forEach((user, index) => {
+            const col = document.createElement('div');
+            col.className = 'col-sm-6 col-md-4 col-lg-3 mb-4';
+
+            col.innerHTML = `
+                <div class="card user-card h-100 text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">${user.name}</h5>
+                        <p id="timer-${index}" class="card-text fs-4 fw-bold">--:--.-</p>
+                    </div>
+                </div>
+            `;
+
+            grid.appendChild(col);
+        });
+    }
+
+    function updateTimers() {
+        const now = Date.now();
+        userData.forEach((user, index) => {
+            const startTime = new Date(user.start).getTime();
+            const elapsed = (now - startTime) / 1000;
+            const remaining = user.offset - elapsed;
+
+            const timerEl = document.getElementById(`timer-${index}`);
+            if (timerEl) {
+                timerEl.textContent = formatTime(remaining);
+                if (remaining <= 10){
+                    timerEl.classList.add('text-danger');
+                }
+                if (remaining <= 0) {
+                    timerEl.textContent = '💀 DEAD';
+                }
+            }
+        });
+    }
+
+    async function fetchInitialData() {
+        const response = await fetch('/show_times_api');
+        userData = await response.json();
+        renderGrid();
+        updateTimers();
+    }
+
+    fetchInitialData().then(() => {
+        setInterval(updateTimers, 100); // update every 100ms
+        setInterval(fetchInitialData, 10000); // refresh full data from backend
+    });
+</script>
+
+</head>
+<body>
+
+   <div class="container mt-5">
+        <h1 class="mb-4 text-center">User Scores</h1>
+
+        <div id="userGrid" class="row">
+            <!-- Populated dynamically -->
+        </div>
+    </div>
+
+
+</body>
+</html>
