@@ -1096,7 +1096,7 @@ def show_logs():
     if user is None or user == "":
         rows = cursor_db.execute('SELECT * FROM (logs JOIN users ON logs.user_id = users.user_id) ORDER BY id DESC').fetchall()
     else:
-        rows = cursor_db.execute('SELECT * FROM (logs JOIN users ON logs.user_id = users.user_id) WHERE user_id = ? ORDER BY id DESC', (user,)).fetchall()
+        rows = cursor_db.execute('SELECT * FROM (logs JOIN users ON logs.user_id = users.user_id) WHERE logs.user_id = ? ORDER BY id DESC', (user,)).fetchall()
     
     connection_db.close()
 

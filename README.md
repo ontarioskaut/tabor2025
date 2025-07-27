@@ -28,9 +28,7 @@ De facto jen operace nad databází.
     podíváme se na poslední znak a podle toho upravíme
 - můžeme přidat "eval" funkci na stringy
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
-- funkce pro vynulování coinů (případně řešitelné přes "krát 0", pokud by byly další režimy)
-    - to souvisí s tím, jak chceme pracovat s coiny, jestli bude jednodušší to spravovat přes admina nebo primárně přes nody...
-    - předtím jsi mluvil o nfc readru na mobil, kde to budeš upravovat, to mi přijde nešikovné, protože to pak musí být přes https a řešit tam certifikáty, jednodušší je za mě použít jinou čtečku na přečtení tagu a pak udělat jednoduchou stránku do které zkopíruješ tag_id a klikneš na aktivovat... (tedy vlastně "activate_coin" akorát nejen v příkazové řádnce )
+- aplikace do mobilu pro aktivaci
 - show-time - lehce dodělat
 
 ## Done To-Do pro kontrolu
