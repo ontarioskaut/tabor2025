@@ -6,6 +6,7 @@ Celé je to flask a sqlite
 De facto jen operace nad databází.
   
 ### poznámky k implementaci
+- celé to je nezabezpečené a náchylné k injekcím
 - když má více lidí stejný akronym, tak se zobrazí jen poslední, protože to ukládám do množiny
 - boolean je jen Integer, kdekoli jdou používat hodnoty False a True jako 0 a 1, ale nepoužívám je
 - Datetime se automaticky vybralo, jak se bude ukládat je to TEXT v ISO formátu. K hodnotám se dá přistupovat i pomocí sqlite, ale já tam používám python datetime
@@ -19,18 +20,18 @@ De facto jen operace nad databází.
 
 ## TO-DO (věcí o kterých asi vím)
 - přesné návratové hodnoty - oproti našemu dokumentu v některých funkcích vracím offset ne atuální čas, klidně to změním - jo, to by bylo fajn
-    - fajn , upravím, jen v **jakých jednotkách**? sekundy? string? co ti vyhovuje nejvíc?
-- jsem si uvědomil že "category name" vlastně nikde nepoužívám, takže pokud nechceme kategorie jen čísílkové, tak tam přidám join a nějak to upravím - na tomto budu teď pracovat - budou tam select boxy u userů/coinů -*upříměn nevím co tím myslíš, ale nechávám to na tobě, já tam dodělal samotný join a jde vedle toho vidět jméno*
+    - v sekundách
+-  kategorie - speciální relace user id - category id, v tabulce select boxy, každý uživatel může mít více kategorií
 - trochu jsem pohýbal se strukturou display_api - doplněny announcements. Ty by se hodilo umět editovat v admin gui
     - v tu chvíli si to chce pamatovat nastavení a annoucments i mimo kód, takže mít dvě další tabulky v databázi...
 - přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
+    podíváme se na poslední znak a podle toho upravíme
+- můžeme přidat "eval" funkci na stringy
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
-- chceme kategorie nechat jako jen jedno číslo, nebo nějak zapracovat, aby mohl být uživatel ve vícero kategoriích?
 - funkce pro vynulování coinů (případně řešitelné přes "krát 0", pokud by byly další režimy)
     - to souvisí s tím, jak chceme pracovat s coiny, jestli bude jednodušší to spravovat přes admina nebo primárně přes nody...
     - předtím jsi mluvil o nfc readru na mobil, kde to budeš upravovat, to mi přijde nešikovné, protože to pak musí být přes https a řešit tam certifikáty, jednodušší je za mě použít jinou čtečku na přečtení tagu a pak udělat jednoduchou stránku do které zkopíruješ tag_id a klikneš na aktivovat... (tedy vlastně "activate_coin" akorát nejen v příkazové řádnce )
-- show_time v budoucnu bude stránka, s real-time časovačema a jmény, co jde hodit na promítačku / televizi (tedy monitor)
-
+- show-time - lehce dodělat
 
 ## Done To-Do pro kontrolu
 - displayed - změnit number input na checkbox
@@ -44,6 +45,7 @@ De facto jen operace nad databází.
     - log se zatím dá zobrazit v test_log
     - a nevím co všechno vlastně chceme logovat, pokud jen změnu offsetů, tak to není takový problém doplnit jako kompletní přehled všech operací
     - kdyžtak je k to na /show_logs a je tam filtr na uživatele
+
 
 ## API features:
 ### API for end nodes
