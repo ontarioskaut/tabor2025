@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-#import json
-from flask import Flask, jsonify, request, render_template, render_template_string
+# import json
+from flask import (Flask, jsonify, request, render_template,
+                   render_template_string)
 import sqlite3
 from datetime import datetime
 
 
-database_name = "database.db"
+DATABASE_NAME = "database.db"
 
 # -----------------------------------------------------------------------------
 #                            creation and definition of tables
 # -----------------------------------------------------------------------------
+
 
 def create_user_db(cur):
     cur.execute("""
@@ -24,6 +26,8 @@ def create_user_db(cur):
         is_displayed BOOLEAN
     )
     """)
+
+
 def create_category_db(cur):
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users_category (
@@ -32,8 +36,11 @@ def create_category_db(cur):
     )""")
 
     cur.execute("""
-    INSERT OR IGNORE INTO users_category (user_category_id, user_category_name) VALUES (0, 'no_category')
+    INSERT OR IGNORE INTO
+                users_category (user_category_id, user_category_name)
+                VALUES (0, 'no_category')
     """)
+
 
 def create_coins_db(cur):
     cur.execute("""
@@ -45,7 +52,8 @@ def create_coins_db(cur):
         last_used DATETIME,
         is_active BOOLEAN
     )""")
-    
+
+
 def create_coin_category_db(cur):
     cur.execute("""
     CREATE TABLE IF NOT EXISTS coin_category (
@@ -53,10 +61,11 @@ def create_coin_category_db(cur):
         coin_category_name TEXT
     )""")
     cur.execute("""
-        INSERT OR IGNORE INTO coin_category (coin_category_id, coin_category_name) VALUES (0, 'no_category')
-    """)    
+        INSERT OR IGNORE INTO
+                coin_category (coin_category_id, coin_category_name)
+                VALUES (0, 'no_category')
+    """)
 
-    
 
 def create_log_table(cur):
     cur.execute("""
@@ -68,6 +77,7 @@ def create_log_table(cur):
         details TEXT
     )""")
 
+
 def create_log_triggers(cur):
     cur.execute("""
     CREATE TRIGGER IF NOT EXISTS user_offset_update
@@ -76,9 +86,22 @@ def create_log_triggers(cur):
         WHEN NEW.user_time_offset <> OLD.user_time_offset
     BEGIN
         INSERT INTO logs (timestamp, user_id, amount, details)
-        VALUES (DATETIME('NOW'), NEW.user_id, NEW.user_time_offset - OLD.user_time_offset, 'updated offset');
+        VALUES (DATETIME('NOW'), NEW.user_id,
+                NEW.user_time_offset - OLD.user_time_offset,
+                'updated offset');
     END;
     """)
+
+
+def create_categories_relation(cur):
+    # one to many relation
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS categories_rel (
+        id INTEGER PRIMARY KEY,
+        user_id INTEGER,
+        category_id INTEGER,
+    )""")
+
 
 def create_tables(name: str):
     connection_db = sqlite3.connect(name)
@@ -88,21 +111,28 @@ def create_tables(name: str):
     create_category_db(cursor_db)
     create_coin_category_db(cursor_db)
 
+    create_categories_relation(cursor_db)
+
     create_log_table(cursor_db)
     create_log_triggers(cursor_db)
 
     connection_db.commit()
     cursor_db.close()
 
+# -----------------------------------------------------------------------------
+# ------------------------------- aux functions -------------------------------
+# -----------------------------------------------------------------------------
 
-def insert_user(cur, tag_id: str, name: str, acro: str, category: int, offset: int, start: int, is_displayed: int):
+
+def insert_user(cur, tag_id: str, name: str, acro: str,
+                category: int, offset: int, start: int, is_displayed: int):
     cur.execute(f"SELECT MAX(user_id) FROM users")
     new_id = cur.fetchone()[0]
     new_id = new_id + 1 if new_id is not None else 1
     temp = f"{new_id}, '{tag_id}', '{name}', '{acro}', {category}, {offset}, '{start}', {is_displayed}"
     cur.execute("Insert INTO users VALUES (" + temp + ")")
 
-    
+
 # def insert_coin(cur, tag_id: str, value: int, category: int):
 #     cur.execute(f"SELECT MAX(coin_id) FROM coins")
 #     new_id = cur.fetchone()[0]
@@ -110,12 +140,16 @@ def insert_user(cur, tag_id: str, name: str, acro: str, category: int, offset: i
 #     temp = f"{new_id}, '{tag_id}', {value}, {category}, '1970-01-01 00:00:00', 0"
 #     cur.execute("Insert INTO coins VALUES (" + temp + ")")
 
-def insert_coin(cur, tag_id: str, value: int, category: int, last_used:str = '1970-01-01 00:00:00', is_active: int = 0):
+
+def insert_coin(cur, tag_id: str, value: int, category: int,
+                last_used:str = '1970-01-01 00:00:00', is_active: int = 0):
+    # last two argumemts are not required and automatically filled with "zero" value
     cur.execute(f"SELECT MAX(coin_id) FROM coins")
     new_id = cur.fetchone()[0]
     new_id = new_id + 1 if new_id is not None else 1
     temp = f"{new_id}, '{tag_id}', {value}, {category}, '{last_used}', {is_active}"
     cur.execute("Insert INTO coins VALUES (" + temp + ")")
+
 
 def seconds_to_text(total_seconds: int):
     is_negative = total_seconds < 0
@@ -130,11 +164,12 @@ def seconds_to_text(total_seconds: int):
 
     if is_negative:
         return f"-{formatted_time}"
-    else:
-        return formatted_time
-    
+    return formatted_time
+
+
 def count_remaining_time(timestamp: str, offset: int):
-    time_diff = (datetime.now() - datetime.fromisoformat(timestamp)).total_seconds()
+    start_int = datetime.fromisoformat(timestamp)
+    time_diff = (datetime.now() - start_int).total_seconds()
     return offset - round(time_diff)
 
 
@@ -143,48 +178,25 @@ def test_show_users(cur):
     print(test.fetchall())
 
 
-def test_fce():
-    print("running this")
-    #create_tables(database_name)
-
-    connection_db = sqlite3.connect(database_name)
-    cursor_db = connection_db.cursor()
-    #insert_user(cursor_db, 1, 10, "alfa", "a", 5, 10000, datetime.now())
-    #insert_user(cursor_db, 2, 20, "beta", "b", 2, 20000, datetime.now())
-
-    insert_coin(cursor_db, 1, "A1", 1000, 4)
-    insert_coin(cursor_db, 2, "B1", 2000, 2)
-
-    connection_db.commit()
-
-    #test = cursor_db.execute("sqlite_master")
-    test = cursor_db.execute("SELECT * from users")
-    print(test.fetchall())
-
-
-    print("heeej")
-
-
-#test_fce()
-
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # --------------FLASK-------------------------------------------
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 @app.route('/')
 def index():
     return "hello world <img src='/static/others/pic01.png'>"
 
-#------------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # ------------------API FOR NODES------------------------------
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 @app.route('/get_identification', methods=['GET'])
 def get_identification():
     user_tag_id = request.args.get('user_tag_id')
 
     if not user_tag_id:
         return jsonify({"error": "user_tag_id is required"}), 400
-    
+
     connection_db = sqlite3.connect("database.db")
     cursor_db = connection_db.cursor()
 
@@ -197,20 +209,19 @@ def get_identification():
         name, offset, start_str = user
         time = count_remaining_time(start_str, offset)
         return jsonify({"name":name, "user_time": time})
-    else:
-        return jsonify({"error": "User not found"}), 404
+    return jsonify({"error": "User not found"}), 404
 
 
 def addition_of_time(user_tag_id, time_to_change, is_addition: bool):
     if not time_to_change or not user_tag_id:
         return jsonify({"error": "time_to_subtract and user_tag_id are required"}), 400
-    
+
     try:
         time_to_change = int(time_to_change)
     except ValueError:
         return jsonify({"error": "time must be an integer"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     cursor_db.execute("SELECT user_time_offset, user_game_start_timestamp FROM users WHERE user_tag_id = ?", (user_tag_id,))
@@ -256,7 +267,7 @@ def add_coinval():
     if not coin_tag_id or not user_tag_id:
         return jsonify({"error": "coin_tag_id and user_tag_id are required"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     cursor_db.execute("SELECT user_time_offset, user_game_start_timestamp FROM users WHERE user_tag_id = ?", (user_tag_id,))
@@ -278,7 +289,6 @@ def add_coinval():
         
         cursor_db.execute("UPDATE coins SET last_used = DATETIME('NOW'), is_active = ? WHERE coin_tag_id = ?", (0, coin_tag_id))
 
-        
         connection_db.commit()
         connection_db.close()
 
@@ -288,7 +298,6 @@ def add_coinval():
     else:
         connection_db.close()
         return jsonify({"error": "User or tag found"}), 404
-
 
 
 @app.route('/set_coinval', methods=['GET'])
@@ -305,7 +314,7 @@ def set_coinval():
     except:
         return jsonify({"error": "coin_value and category must be integers"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     cursor_db.execute("SELECT coin_tag_id FROM coins WHERE coin_tag_id = ?", (coin_tag_id,))
@@ -327,7 +336,7 @@ def activate_coin():
     if coin_tag_id is None:
         return jsonify({"error": "coin tag is required"})
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
     cursor_db.execute("SELECT coin_tag_id FROM coins WHERE coin_tag_id = ?", (coin_tag_id,))
     coin = cursor_db.fetchone()
@@ -349,12 +358,11 @@ def init_user_tag():
     if not user_tag_id:
         return jsonify({"error": "no user_tag_id"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     cursor_db.execute("SELECT user_id FROM users WHERE user_tag_id = ?", (user_tag_id,))
     user = cursor_db.fetchone()
-
 
     response = {}
 
@@ -376,14 +384,13 @@ def init_user_tag():
 #------------------------------------------------------------------------------
 @app.route('/get_time_simple', methods=['GET'])
 def get_time_simple():
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
     cursor_db.execute("SELECT user_acro, user_time_offset, user_game_start_timestamp, is_displayed FROM users")
     rows = cursor_db.fetchall()
     connection_db.close()
 
     user_dict = {}
-
 
     for acro, offset, start, disp in rows:
         if int(disp) == 0:
@@ -394,7 +401,7 @@ def get_time_simple():
 
 @app.route('/get_time', methods=['GET'])
 def get_time():
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
     cursor_db.execute("SELECT user_acro, user_time_offset, user_game_start_timestamp, is_displayed FROM users")
     rows = cursor_db.fetchall()
@@ -422,7 +429,7 @@ def set_user_field():
     if not user_id or not field_name or not new_value:
         return jsonify({"error": "wrong arguments input should be user_id, filed_name, new_value"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     try:
@@ -474,10 +481,9 @@ def dashboard():
 
 @app.route('/admin/users', methods=['GET'])
 def admin_users():
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     connection_db.row_factory = sqlite3.Row
     cursor_db = connection_db.cursor()
-
 
     #rows = cursor_db.execute('SELECT * FROM users').fetchall()
     rows = cursor_db.execute("""SELECT users.user_id, users.user_tag_id, users.user_name, users.user_acro, users.user_category, users_category.user_category_name, users.user_time_offset, users.user_game_start_timestamp, users.is_displayed
@@ -512,7 +518,7 @@ def update_user():
     user_time_offset = request.form.get('user_time_offset')
     user_game_start_timestamp = request.form.get('user_game_start_timestamp')
     is_displayed = request.form.get('is_displayed') #returns string "on" or None
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     if not all([user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp]):
@@ -557,7 +563,7 @@ def add_user():
     user_game_start_timestamp = request.form.get('user_game_start_timestamp')
     is_displayed = request.form.get('is_displayed') #returns string "on" or None
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     if not all([user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp]):
@@ -573,7 +579,7 @@ def add_user():
         connection_db.close()
         return jsonify({"error":f"user tag is already in use, by user: {tags[0]}, {tags[1]}"}), 400
 
-    if not user_category.isnumeric() or not user_time_offset.isnumeric():
+    if not user_category.isdecimal() or not user_time_offset.isdecimal():
         return jsonify({"error":"category and offset must me integers"})
 
     try:
@@ -587,13 +593,14 @@ def add_user():
 
     return jsonify({"status": "succes"})
 
+
 @app.route('/admin/delete_user', methods=['POST'])
 def delete_user():
     user_id = request.form.get('user_id')
     if not user_id:
         return jsonify({"error": "user_id is required"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
     try:
         cursor_db.execute("DELETE FROM users WHERE user_id = ?", (user_id,))
@@ -603,6 +610,7 @@ def delete_user():
         return jsonify({"error": f"An error occurred: {e}"}), 500
     finally:
         connection_db.close()
+
 
 @app.route('/bulk_add_user_time', methods=['POST'])
 def bulk_add_user_time():
@@ -618,7 +626,7 @@ def bulk_add_user_time():
     except ValueError:
         return jsonify({"error": "time_offset must be an integer"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     try:
@@ -640,11 +648,9 @@ def bulk_add_user_time():
 
 
 # --------------------------- coins -------------------------------------------
-
-
 @app.route('/admin/coins', methods=['GET'])
 def admin_coins():
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     connection_db.row_factory = sqlite3.Row
     cursor_db = connection_db.cursor()
     #rows = cursor_db.execute('SELECT * FROM (coins JOIN coin_category ON coins.coin_category = coin_category.coin_category_id) ').fetchall()
@@ -673,7 +679,7 @@ def update_coin():
     else:
         elem_is_active_int = 1
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     if not all([elem_id, elem_tag_id, elem_value, elem_category, elem_last_used]):
@@ -716,7 +722,7 @@ def add_coin():
     else:
         elem_activity_int = 1
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     if not all([elem_tag_id, elem_value, elem_category, elem_last_used]):
@@ -741,13 +747,14 @@ def add_coin():
 
     return jsonify({"status": "succes"})
 
+
 @app.route('/admin/delete_coin', methods=['POST'])
 def delete_coin():
     elem_id = request.form.get('coin_id')
     if not elem_id:
         return jsonify({"error": "coin_id is required"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
     try:
         cursor_db.execute("DELETE FROM coins WHERE coin_id = ?", (elem_id,))
@@ -768,7 +775,7 @@ def bulk_set_coin_field():
     if not coin_ids or not field_name or not new_value:
         return jsonify({"error": "coin_ids, field_name, and new_value are required"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     try:
@@ -783,13 +790,12 @@ def bulk_set_coin_field():
     finally:
         connection_db.close()
 
+
 @app.route('/bulk_add_coin_time', methods=['POST'])
 def bulk_add_coin_time():
     data = request.get_json()
     elem_ids = data.get('coin_ids')
     time_offset = data.get('time_offset')
-
-    print("workign here")
 
     if not elem_ids or not time_offset:
         return jsonify({"error": "elem_ids and time_offset are required"}), 400
@@ -799,7 +805,7 @@ def bulk_add_coin_time():
     except ValueError:
         return jsonify({"error": "time_offset must be an integer"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     try:
@@ -822,11 +828,9 @@ def bulk_add_coin_time():
 
 
 # --------------------------- categories -------------------------------------------
-
-
 @app.route('/admin/categories_user', methods=['GET'])
 def admin_user_categories():
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     connection_db.row_factory = sqlite3.Row
     cursor_db = connection_db.cursor()
 
@@ -842,7 +846,7 @@ def update_user_category():
     elem_id = request.form.get('category_id')
     elem_name = request.form.get('category_name')
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     if not all([elem_id, elem_name]):
@@ -873,7 +877,7 @@ def add_user_category():
 
     print(elem_name)
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     if not elem_name:
@@ -896,13 +900,14 @@ def add_user_category():
 
     return jsonify({"status": "succes"})
 
+
 @app.route('/admin/delete_user_category', methods=['POST'])
 def delete_user_category():
     elem_id = request.form.get('category_id')
     if not elem_id:
         return jsonify({"error": "id is required"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
     try:
         cursor_db.execute("DELETE FROM users_category WHERE user_category_id = ?", (elem_id,))
@@ -912,6 +917,7 @@ def delete_user_category():
         return jsonify({"error": f"An error occurred: {e}"}), 500
     finally:
         connection_db.close()
+
 
 @app.route('/bulk_add_user_time_category', methods=['POST'])
 def bulk_add_user_time_category():
@@ -927,7 +933,7 @@ def bulk_add_user_time_category():
     except ValueError:
         return jsonify({"error": "time_offset must be an integer"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     print(elem_ids)
@@ -956,16 +962,15 @@ def bulk_add_user_time_category():
 
 
 # --------------------------------------- coin categories----------------------
-#takže to celé ještě jednou ale lehce upravené
-
+# takže to celé ještě jednou ale lehce upravené
 @app.route('/admin/categories_coin', methods=['GET'])
 def admin_coin_categories():
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     connection_db.row_factory = sqlite3.Row
     cursor_db = connection_db.cursor()
 
     rows = cursor_db.execute('SELECT * FROM coin_category').fetchall()
-    
+
     connection_db.close()
 
     return render_template('admin_cat_coin_tmp.html', categories=rows)
@@ -977,7 +982,7 @@ def update_coin_category():
     elem_id = request.form.get('category_id')
     elem_name = request.form.get('category_name')
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     if not all([elem_id, elem_name]):
@@ -1003,14 +1008,11 @@ def update_coin_category():
 def add_coin_category():
     elem_name = request.form.get('category_name')
 
-    print(elem_name)
-
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     if not elem_name:
         return jsonify({"error": "Name is required."}), 400
-    
 
     try:
         cursor_db.execute(f"SELECT MAX(coin_category_id) FROM coin_category")
@@ -1029,13 +1031,14 @@ def add_coin_category():
 
     return jsonify({"status": "succes"})
 
+
 @app.route('/admin/delete_coin_category', methods=['POST'])
 def delete_coin_category():
     elem_id = request.form.get('category_id')
     if not elem_id:
         return jsonify({"error": "id is required"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
     try:
         cursor_db.execute("DELETE FROM coin_category WHERE coin_category_id = ?", (elem_id,))
@@ -1045,6 +1048,7 @@ def delete_coin_category():
         return jsonify({"error": f"An error occurred: {e}"}), 500
     finally:
         connection_db.close()
+
 
 @app.route('/bulk_add_coin_time_category', methods=['POST'])
 def bulk_add_coin_time_category():
@@ -1060,7 +1064,7 @@ def bulk_add_coin_time_category():
     except ValueError:
         return jsonify({"error": "time_offset must be an integer"}), 400
 
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     try:
@@ -1082,7 +1086,6 @@ def bulk_add_coin_time_category():
         connection_db.close()
 
 # --------------------------------- other--------------------------------------
-
 @app.route('/show_logs', methods=['GET'])
 def show_logs():
     user = request.args.get('user_id')
@@ -1091,10 +1094,9 @@ def show_logs():
     if user and not user.isnumeric():
         return jsonify({"status": "error", "message": "wrong user id"}), 500
     
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     connection_db.row_factory = sqlite3.Row
     cursor_db = connection_db.cursor()
-
 
     if user is None or user == "":
         rows = cursor_db.execute('SELECT * FROM (logs JOIN users ON logs.user_id = users.user_id) ORDER BY id DESC').fetchall()
@@ -1108,7 +1110,7 @@ def show_logs():
 
 @app.route('/get_logs', methods=['GET'])
 def show_logs_json():
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     cursor_db.execute("""SELECT * FROM logs """)
@@ -1121,14 +1123,13 @@ def show_logs_json():
 
 @app.route('/show_times', methods=['GET'])
 def show_times():
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     rows = cursor_db.execute("""SELECT user_name, user_time_offset, user_game_start_timestamp FROM users """).fetchall()
     connection_db.close()
 
     result = []
-
 
     for name, offset, start in rows:
         time_int = offset - (datetime.now() - datetime.fromisoformat(start)).total_seconds()
@@ -1147,11 +1148,11 @@ def show_times_02():
 
 @app.route('/show_times_api', methods=['GET'])
 def api_times_init():
-    connection_db = sqlite3.connect(database_name)
+    connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
     rows = cursor_db.execute("""
-        SELECT user_name, user_time_offset, user_game_start_timestamp , is_displayed
+        SELECT user_name, user_time_offset, user_game_start_timestamp, is_displayed
         FROM users
     """).fetchall()
     connection_db.close()
@@ -1168,14 +1169,12 @@ def api_times_init():
     return jsonify(result)
 
 
-
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 if __name__ == '__main__':
     print("start")
-    create_tables(database_name)
+    create_tables(DATABASE_NAME)
     app.run(host='0.0.0.0', debug=True)
-
