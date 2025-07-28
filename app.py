@@ -173,7 +173,7 @@ def test_fce():
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 @app.route('/')
 def index():
-    return "hello world"
+    return "hello world <img src='/static/others/pic01.png'>"
 
 #------------------------------------------------------------------------------
 # ------------------API FOR NODES------------------------------
@@ -462,6 +462,8 @@ def dashboard():
             <li><a href="/admin/categories_user">User categories</a></li>
             <li><a href="/admin/categories_coin">Coin categoriesgs</a></li>
             <li><a href="/show_logs">Logs</a></li>
+            <li><a href="/show_times_02">Live timers</a></li>
+            <li><a href="/show_times">Current timers</a></li>
         </ul>
     </body>
     </html>
@@ -1149,13 +1151,15 @@ def api_times_init():
     cursor_db = connection_db.cursor()
 
     rows = cursor_db.execute("""
-        SELECT user_name, user_time_offset, user_game_start_timestamp 
+        SELECT user_name, user_time_offset, user_game_start_timestamp , is_displayed
         FROM users
     """).fetchall()
     connection_db.close()
 
     result = []
-    for name, offset, start in rows:
+    for name, offset, start, is_disp in rows:
+        if is_disp == 0:
+            continue
         result.append({
             'name': name,
             'offset': offset,

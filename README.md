@@ -110,7 +110,7 @@ De facto jen operace nad databází.
 ### Admin dashboard API
 - admin dashbord (/admin)
     - in: nothing
-    - out: fillet html template
+    - out: filled html template
 - user admin (/admin/users)
     - in: nothing
     - out: filled html template:
