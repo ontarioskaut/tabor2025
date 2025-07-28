@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User-Category Relation</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <script src="/static/js/bootstrap.js"></script>
+    <script>
+        
+
+        //warning this is not the normal handleForms as in other pages, this has event.target.form instead of just event.target
+        function handleForms(event, url) {
+            event.preventDefault();
+            const formData = new FormData(event.target.form);
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert('Operation successful!');
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                alert('An error occurred: ' + error);
+            });
+        }
+    </script>
+</head>
+<body class="bg-light">
+    <div class="container mt-4">
+        <h1 class="mb-4">User - Category Relation</h1>
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>User ID</th>
+                    <th>User Name</th>
+                    {% for category in categories %}
+                        <th>{{ category['user_category_name'] }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user['user_id'] }}</td>
+                    <td>{{ user['user_name'] }}</td>
+                    {% for category in categories %}
+                    <td>
+                        <form >
+                            <input type="hidden" name="user_id" value="{{ user['user_id'] }}">
+                            <input type="hidden" name="category_id" value="{{ category['user_category_id'] }}">
+                            <input type="checkbox" name="is_checked"
+                                {% for rel in relation %}
+                                    {% if rel['user_id'] == user['user_id'] and rel['category_id'] == category['user_category_id'] %}
+                                        checked
+                                    {% endif %}
+                                {% endfor %}
+                                onchange="handleForms(event, '/admin/toggle_user_cat_rel')">
+                        </form>
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

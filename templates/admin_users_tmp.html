@@ -69,7 +69,7 @@
                 <label for="bulkTimeOffset" class="col-form-label">Time Offset to Add:</label>
             </div>
             <div class="col-auto">
-                <input type="number" id="bulkTimeOffset" name="time_offset" class="form-control" required>
+                <input type="text" id="bulkTimeOffset" name="time_offset" class="form-control" required>
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-primary">Apply to Selected Users</button>
@@ -84,8 +84,6 @@
                     <th>User Tag ID</th>
                     <th>Name</th>
                     <th>Acronym</th>
-                    <th>Category</th>
-                    <th>Category name</th>
                     <th>Time Offset</th>
                     <th>Start Timestamp</th>
                     <th>Displayed</th>
@@ -102,8 +100,6 @@
                         <td><input type="text" name="user_tag_id" value="{{ user['user_tag_id'] }}" class="form-control"></td>
                         <td><input type="text" name="user_name" value="{{ user['user_name'] }}" class="form-control"></td>
                         <td><input type="text" name="user_acro" value="{{ user['user_acro'] }}" class="form-control"></td>
-                        <td><input type="text" name="user_category" value="{{ user['user_category'] }}" class="form-control"></td>
-                        <td>{{ user['user_category_name'] }}</td>
                         <td><input type="text" name="user_time_offset" value="{{ user['user_time_offset'] }}" class="form-control"></td>
                         <td><input type="datetime-local" name="user_game_start_timestamp" value="{{ user['user_game_start_timestamp'] }}" class="form-control"></td>
                         <td><input type="checkbox" name="is_displayed" value="1" {% if user['is_displayed'] == 1 %}checked{% endif %} class="form-check-input"></td>
@@ -128,8 +124,6 @@
                         <td><input type="text" name="user_tag_id" placeholder="Tag ID" required class="form-control"></td>
                         <td><input type="text" name="user_name" placeholder="Name" value="no_name" required class="form-control"></td>
                         <td><input type="text" name="user_acro" placeholder="Acronym" value="x" required class="form-control"></td>
-                        <td><input type="text" name="user_category" placeholder="Category" value="0" required class="form-control"></td>
-                        <td></td>
                         <td><input type="text" name="user_time_offset" placeholder="Time Offset" value="0" required class="form-control"></td>
                         <td><input type="datetime-local" name="user_game_start_timestamp" placeholder="Game Start Timestamp" value="{{current_time}}" required class="form-control"></td>
                         <td><input type="checkbox" name="is_displayed" class="form-check-input"></td>

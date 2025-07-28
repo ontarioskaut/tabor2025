@@ -16,18 +16,21 @@ De facto jen operace nad databází.
 - https://sqlite.org/autoinc.html tvrdí, že se primary key dá jako "o jedna vyšší" automaticky a nemusím to dělat já... ale asi to tak už nechám. AUTOINCREMENT je prý zbytečný a jen zajišťuje, aby ID nemohlo být použito už nikdy znovu, ani po vymazání nějakého prvku, což podle mě nechceme, navíc sami tvrdí že to je extra CPU
     - integer primary key je automaticky ROWID a dá se tak k němu přistupovat
 - na mnoha místech by bylo pěknější si volat ty funkce navzájem, třeba z bulk_time_add volat prostě jen add_time na jednotlivé usery, tam by se ale databáze otevírala sem tam což nechci, a udělat dodatečnou funkci by nebyl problém, ale asi mi to přijde zbytečné
+- show_times_02 si každých 10 sekund stahuje aktuální data, timery běží jen na frontendu
 
 
 ## TO-DO (věcí o kterých asi vím)
--  kategorie - speciální relace user id - category id, v tabulce select boxy, každý uživatel může mít více kategorií
 - trochu jsem pohýbal se strukturou display_api - doplněny announcements. Ty by se hodilo umět editovat v admin gui
     - v tu chvíli si to chce pamatovat nastavení a annoucments i mimo kód, takže mít dvě další tabulky v databázi...
-- přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
-    podíváme se na poslední znak a podle toho upravíme
+
 - můžeme přidat "eval" funkci na stringy
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
 - aplikace do mobilu pro aktivaci
-- show-time - lehce dodělat
+
+- přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
+    podíváme se na poslední znak a podle toho upravíme
+    - jo, mění to podle posledního znaku
+    - zatím ve speciálním api a u user bulk, ale to se doplní
 
 ## Done To-Do pro kontrolu
 - displayed - změnit number input na checkbox
@@ -43,6 +46,15 @@ De facto jen operace nad databází.
     - kdyžtak je k to na /show_logs a je tam filtr na uživatele
 - přesné návratové hodnoty - oproti našemu dokumentu v některých funkcích vracím offset ne atuální čas, klidně to změním - jo, to by bylo fajn
     - v sekundách
+- kategorie - speciální relace user id - category id, v tabulce select boxy, každý uživatel může mít více kategorií
+    - ehhhhhhhhhhhhhhhhhhhhhhhhhh
+    - funguje to
+    - a asi i dobře a asi i lépe než jsem původně myslel že to udělám
+    - v /admin stránce je na to odkaz, někdy třebas doplnim tu "dokumentaci"
+
+
+
+
 
 ## API features:
 ### API for end nodes

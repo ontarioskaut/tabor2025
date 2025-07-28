@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User cat rel</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <script src="/static/js/bootstrap.js"></script>
+    <script>
+        function handleForms(event, url) {
+            console.log("here")
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert('Operation successful!');
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                alert('An error occurred: ' + error);
+            });
+        }
+
+        function sortTable(columnIndex, type = 'str', descending = false) {
+            const tbody = document.querySelector("table tbody");
+            const rows = Array.from(tbody.querySelectorAll("tr"))
+                .filter(row => !row.querySelector("button.btn-primary")); // skip the "Add" row
+
+            rows.sort((a, b) => {
+                const aCells = a.querySelectorAll("td");
+                const bCells = b.querySelectorAll("td");
+
+                // Ensure we are accessing the correct cells
+                const aCell = aCells[columnIndex];
+                const bCell = bCells[columnIndex];
+
+                // Get the input value if it exists, otherwise use the cell text content
+                const aVal = aCell.querySelector("input[type='text']") ? aCell.querySelector("input[type='text']").value : aCell.textContent.trim();
+                const bVal = bCell.querySelector("input[type='text']") ? bCell.querySelector("input[type='text']").value : bCell.textContent.trim();
+
+                // Convert to appropriate type for comparison
+                let aComp = type === 'num' ? parseFloat(aVal) : aVal.toLowerCase();
+                let bComp = type === 'num' ? parseFloat(bVal) : bVal.toLowerCase();
+
+                // Handle NaN values
+                if (isNaN(aComp)) aComp = 0;
+                if (isNaN(bComp)) bComp = 0;
+
+                // Perform the comparison
+                if (aComp < bComp) return descending ? 1 : -1;
+                if (aComp > bComp) return descending ? -1 : 1;
+                return 0;
+            });
+
+            // Reinsert sorted rows
+            rows.forEach(row => tbody.insertBefore(row, tbody.lastElementChild));
+        }
+
+  
+
+    </script>
+</head>
+<body class="bg-light">
+    <div class="container mt-4">
+        <h1 class="mb-4">User - Category - Relation</h1>
+
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Row ID</th>
+                    <th>
+                        User ID
+                        <a href="#" onclick="sortTable(1, 'num', false); return false;">↑</a>
+                        <a href="#" onclick="sortTable(1, 'num', true); return false;">↓</a>
+                    </th>
+                    <th>User Name</th>
+                    <th>
+                        Category ID
+                        <a href="#" onclick="sortTable(3, 'num', false); return false;">↑</a>
+                        <a href="#" onclick="sortTable(3, 'num', true); return false;">↓</a>
+                    </th>
+                    <th>Category name</th>
+                    <th style="width: 200px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in input_data %}
+                <tr>
+                    <td class="align-middle">{{ row['id'] }}</td>
+                    <td>
+                        <form onsubmit="handleForms(event, '/admin/update_user_cat_rel')">
+                            <input type="hidden" name="row_id" value="{{ row['id'] }}">
+                            <input type="text" name="user_id" value="{{ row['user_id'] }}" class="form-control">
+                    </td>
+                    <td>{{ row['user_name'] }}</td>
+                    <td>
+                            <input type="text" name="category_id" value="{{ row['category_id'] }}" class="form-control">
+                    </td>
+                    <td>{{ row['user_category_name'] }}</td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button type="submit" class="btn btn-sm btn-success">Update</button>
+                        </form>
+                        <form onsubmit="handleForms(event, '/admin/delete_user_cat_rel')">
+                            <input type="hidden" name="row_id" value="{{ row['id'] }}">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+
+                <!-- Add new user form -->
+                <tr>
+                    <form onsubmit="handleForms(event, '/admin/add_user_cat_rel')" class="d-flex gap-2">
+                        <td></td>
+                        <td><input type="text" name="user_id" placeholder="User ID" required class="form-control"></td>
+                        <td></td>
+                        <td><input type="text" name="category_id" placeholder="Category" required class="form-control"></td>
+                        <td></td>
+                        <td><button type="submit" class="btn btn-primary">Add relation</button></td>
+                    </form>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

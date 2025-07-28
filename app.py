@@ -7,6 +7,7 @@ from datetime import datetime
 
 
 DATABASE_NAME = "database.db"
+ALLOWED_OPERATORS = {'+', '-', '*', '%'}
 
 # -----------------------------------------------------------------------------
 #                            creation and definition of tables
@@ -20,7 +21,6 @@ def create_user_db(cur):
         user_tag_id TEXT,
         user_name TEXT,
         user_acro TEXT,
-        user_category INTEGER,
         user_time_offset INTEGER,
         user_game_start_timestamp DATETIME,
         is_displayed BOOLEAN
@@ -99,7 +99,7 @@ def create_categories_relation(cur):
     CREATE TABLE IF NOT EXISTS categories_rel (
         id INTEGER PRIMARY KEY,
         user_id INTEGER,
-        category_id INTEGER,
+        category_id INTEGER
     )""")
 
 
@@ -125,21 +125,12 @@ def create_tables(name: str):
 
 
 def insert_user(cur, tag_id: str, name: str, acro: str,
-                category: int, offset: int, start: int, is_displayed: int):
+                offset: int, start: int, is_displayed: int):
     cur.execute(f"SELECT MAX(user_id) FROM users")
     new_id = cur.fetchone()[0]
     new_id = new_id + 1 if new_id is not None else 1
-    temp = f"{new_id}, '{tag_id}', '{name}', '{acro}', {category}, {offset}, '{start}', {is_displayed}"
+    temp = f"{new_id}, '{tag_id}', '{name}', '{acro}', {offset}, '{start}', {is_displayed}"
     cur.execute("Insert INTO users VALUES (" + temp + ")")
-
-
-# def insert_coin(cur, tag_id: str, value: int, category: int):
-#     cur.execute(f"SELECT MAX(coin_id) FROM coins")
-#     new_id = cur.fetchone()[0]
-#     new_id = new_id + 1 if new_id is not None else 1
-#     temp = f"{new_id}, '{tag_id}', {value}, {category}, '1970-01-01 00:00:00', 0"
-#     cur.execute("Insert INTO coins VALUES (" + temp + ")")
-
 
 def insert_coin(cur, tag_id: str, value: int, category: int,
                 last_used:str = '1970-01-01 00:00:00', is_active: int = 0):
@@ -171,6 +162,18 @@ def count_remaining_time(timestamp: str, offset: int):
     start_int = datetime.fromisoformat(timestamp)
     time_diff = (datetime.now() - start_int).total_seconds()
     return offset - round(time_diff)
+
+
+def count_new_offset(old_offset: int, input: int, mode: str):
+        if mode == '+':
+            new_offset = old_offset + input
+        elif mode == '-':
+            new_offset = old_offset - input
+        elif mode == '*':
+            new_offset = old_offset * input
+        elif mode == '%':
+            new_offset = old_offset * ((100 + input) / 100)
+        return new_offset
 
 
 def test_show_users(cur):
@@ -212,7 +215,7 @@ def get_identification():
     return jsonify({"error": "User not found"}), 404
 
 
-def addition_of_time(user_tag_id, time_to_change, is_addition: bool):
+def addition_of_time(user_tag_id, time_to_change, mode: str = '+'):
     if not time_to_change or not user_tag_id:
         return jsonify({"error": "time_to_subtract and user_tag_id are required"}), 400
 
@@ -229,9 +232,8 @@ def addition_of_time(user_tag_id, time_to_change, is_addition: bool):
 
     if user:
         current_offset, start_time = user
-        if not is_addition:
-            time_to_change *= -1
-        new_offset = current_offset + time_to_change
+        print(user)
+        new_offset = count_new_offset(current_offset, time_to_change, mode)
         cursor_db.execute("UPDATE users SET user_time_offset = ? WHERE user_tag_id = ?", (new_offset, user_tag_id))
         connection_db.commit()
         connection_db.close()
@@ -248,7 +250,10 @@ def substract_time():
     time_to_subtract = request.args.get('time_to_subtract')
     user_tag_id = request.args.get('user_tag_id')
 
-    return addition_of_time(user_tag_id, time_to_subtract, False)
+    if not time_to_subtract or not user_tag_id:
+        return jsonify({"error": "time_to_substract and user_tag_id are required"}), 404
+
+    return addition_of_time(user_tag_id, time_to_subtract, '-')
 
 
 @app.route('/add_time', methods=['GET'])
@@ -256,7 +261,29 @@ def add_time():
     time_to_add = request.args.get('time_to_add')
     user_tag_id = request.args.get('user_tag_id')
 
-    return addition_of_time(user_tag_id, time_to_add, True)
+    if not time_to_add or not user_tag_id:
+        return jsonify({"error": "time_to_add and user_tag_id are required"}), 404
+
+    return addition_of_time(user_tag_id, time_to_add, '+')
+
+@app.route('/change_time', methods=['GET'])
+def change_time():
+    time_to_add = request.args.get('input_time')
+    user_tag_id = request.args.get('user_tag_id')
+
+    if not time_to_add or not user_tag_id:
+        return jsonify({"error": "input_time and user_tag_id are required"}), 404
+
+    symbol = '+'
+    if not time_to_add[-1].isdecimal():
+        symbol = time_to_add[-1]
+        if symbol not in ALLOWED_OPERATORS:
+            return jsonify({"error": "time must be integer"}), 404
+        else:
+            time_to_add = time_to_add[:-1]
+
+
+    return addition_of_time(user_tag_id, time_to_add, symbol)
 
 
 @app.route('/add_coinval', methods=['GET'])
@@ -329,6 +356,7 @@ def set_coinval():
 
     return jsonify({"status": "success"})
 
+
 @app.route('/activate_coin', methods=['GET'])
 def activate_coin():
     coin_tag_id = request.args.get('coin_tag_id')
@@ -371,7 +399,7 @@ def init_user_tag():
         response["text"] = "user already exist"
     else:
         response["status"] = "success"
-        insert_user(cursor_db, user_tag_id, "initname", "x", 0, 0, datetime.now(), 0)
+        insert_user(cursor_db, user_tag_id, "initname", "x", 0, datetime.now(), 0)
     
     connection_db.commit()
     connection_db.close()
@@ -400,6 +428,7 @@ def get_time_simple():
     return jsonify(user_dict)
 
 @app.route('/get_time', methods=['GET'])
+# i thoght i will do something about this, but then i just left it so it's the same as simple version
 def get_time():
     connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
@@ -456,24 +485,41 @@ def set_user_field():
 def dashboard():
     # HTML for the dashboard with links
     html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Admin Dashboard</title>
-    </head>
-    <body>
-        <h1>Welcome to the Admin Dashboard</h1>
-        <ul>
-            <li><a href="/admin/users">Users</a></li>
-            <li><a href="/admin/coins">Coins</a></li>
-            <li><a href="/admin/categories_user">User categories</a></li>
-            <li><a href="/admin/categories_coin">Coin categoriesgs</a></li>
-            <li><a href="/show_logs">Logs</a></li>
-            <li><a href="/show_times_02">Live timers</a></li>
-            <li><a href="/show_times">Current timers</a></li>
-        </ul>
-    </body>
-    </html>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Admin Dashboard</title>
+            <!-- Bootstrap CSS -->
+            <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body>
+            <div class="container mt-5">
+                <h1 class="mb-4 text-center">Welcome to the Admin Dashboard</h1>
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <ul class="list-group">
+                            <li class="list-group-item"><a href="/admin/users" class="text-decoration-none">Users</a></li>
+                            <li class="list-group-item"><a href="/admin/coins" class="text-decoration-none">Coins</a></li>
+                            <li class="list-group-item"><a href="/admin/categories_user" class="text-decoration-none">User categories</a></li>
+                            <li class="list-group-item"><a href="/admin/categories_coin" class="text-decoration-none">Coin categories</a></li>
+                            <li class="list-group-item"><a href="/show_logs" class="text-decoration-none">Logs</a></li>
+                            <li class="list-group-item"><a href="/show_times_02" class="text-decoration-none">Live timers</a></li>
+                            <li class="list-group-item"><a href="/show_times" class="text-decoration-none">Current timers</a></li>
+                            <li class="list-group-item"><a href="/admin/user_cat_relation_v02" class="text-decoration-none">User Category Relation v02</a></li>
+                            <li class="list-group-item"><a href="/admin/user_cat_relation" class="text-decoration-none">User Category Relation</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bootstrap JS and dependencies -->
+            <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        </body>
+        </html>
     """
     return render_template_string(html)
 
@@ -485,11 +531,10 @@ def admin_users():
     connection_db.row_factory = sqlite3.Row
     cursor_db = connection_db.cursor()
 
-    #rows = cursor_db.execute('SELECT * FROM users').fetchall()
-    rows = cursor_db.execute("""SELECT users.user_id, users.user_tag_id, users.user_name, users.user_acro, users.user_category, users_category.user_category_name, users.user_time_offset, users.user_game_start_timestamp, users.is_displayed
-        FROM users
-        JOIN users_category ON users.user_category = users_category.user_category_id
-    """).fetchall()    
+    rows = cursor_db.execute('SELECT * FROM users').fetchall()
+    #rows = cursor_db.execute("""SELECT user_id, user_tag_id, user_name, users.user_acro, users_category.user_category_name, users.user_time_offset, users.user_game_start_timestamp, users.is_displayed
+    #     FROM users
+    # """).fetchall()    
     
     connection_db.close()
 
@@ -507,21 +552,21 @@ def admin_users():
                 print(f"Error parsing timestamp: {raw_time} -> {e}")
 
     return render_template('admin_users_tmp.html', users=user_rows, current_time=current_time)
-    
+
+
 @app.route('/admin/update_user', methods=['POST'])
 def update_user():
     user_id = request.form.get('user_id')
     user_tag_id = request.form.get('user_tag_id')
     user_name = request.form.get('user_name')
     user_acro = request.form.get('user_acro')
-    user_category = request.form.get('user_category')
     user_time_offset = request.form.get('user_time_offset')
     user_game_start_timestamp = request.form.get('user_game_start_timestamp')
     is_displayed = request.form.get('is_displayed') #returns string "on" or None
     connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
-    if not all([user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp]):
+    if not all([user_tag_id, user_name, user_acro, user_time_offset, user_game_start_timestamp]):
         return jsonify({"error": "All fields are required."}), 400
 
     if is_displayed is None:
@@ -534,15 +579,15 @@ def update_user():
         connection_db.close()
         return jsonify({"error":f"user tag is already in use, by user: {tags[0]}, {tags[1]}"}), 400
 
-    if not user_category.isnumeric() or not user_time_offset.isnumeric():
-        return jsonify({"error":"category and offset must me integers"})
+    if  not user_time_offset.isnumeric():
+        return jsonify({"error":"offset must me integers"})
 
     try:
         cursor_db.execute("""
             UPDATE users
-            SET user_tag_id = ?, user_name = ?, user_acro = ?, user_category = ?, user_time_offset = ?, user_game_start_timestamp = ?, is_displayed = ?
+            SET user_tag_id = ?, user_name = ?, user_acro = ?, user_time_offset = ?, user_game_start_timestamp = ?, is_displayed = ?
             WHERE user_id = ?
-        """, (user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp, is_displayed_res, user_id))
+        """, (user_tag_id, user_name, user_acro, user_time_offset, user_game_start_timestamp, is_displayed_res, user_id))
 
         connection_db.commit()
     except sqlite3.Error as e:
@@ -558,7 +603,6 @@ def add_user():
     user_tag_id = request.form.get('user_tag_id')
     user_name = request.form.get('user_name')
     user_acro = request.form.get('user_acro')
-    user_category = request.form.get('user_category')
     user_time_offset = request.form.get('user_time_offset')
     user_game_start_timestamp = request.form.get('user_game_start_timestamp')
     is_displayed = request.form.get('is_displayed') #returns string "on" or None
@@ -566,7 +610,7 @@ def add_user():
     connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
-    if not all([user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp]):
+    if not all([user_tag_id, user_name, user_acro, user_time_offset, user_game_start_timestamp]):
         return jsonify({"error": "All fields are required."}), 400
 
     if is_displayed is None:
@@ -579,11 +623,11 @@ def add_user():
         connection_db.close()
         return jsonify({"error":f"user tag is already in use, by user: {tags[0]}, {tags[1]}"}), 400
 
-    if not user_category.isdecimal() or not user_time_offset.isdecimal():
-        return jsonify({"error":"category and offset must me integers"})
+    if not user_time_offset.isdecimal():
+        return jsonify({"error":"offset must me integers"})
 
     try:
-        insert_user(cursor_db, user_tag_id, user_name, user_acro, user_category, user_time_offset, user_game_start_timestamp, is_displayed_res)
+        insert_user(cursor_db, user_tag_id, user_name, user_acro, user_time_offset, user_game_start_timestamp, is_displayed_res)
         connection_db.commit()
     except sqlite3.Error as e:
         connection_db.close()
@@ -621,6 +665,14 @@ def bulk_add_user_time():
     if not user_ids or not time_offset:
         return jsonify({"error": "user_ids and time_offset are required"}), 400
 
+    symbol = '+'
+    if not time_offset[-1].isdecimal():
+        if symbol not in ALLOWED_OPERATORS:
+            return jsonify({"error": "time_offset must be an integer"}), 400
+        symbol = time_offset[-1]
+        time_offset = time_offset[:-1]
+
+
     try:
         time_offset = int(time_offset)
     except ValueError:
@@ -636,7 +688,7 @@ def bulk_add_user_time():
 
             if user:
                 current_offset = user[0]
-                new_offset = current_offset + time_offset
+                new_offset = count_new_offset(current_offset, time_offset, symbol)
                 cursor_db.execute("UPDATE users SET user_time_offset = ? WHERE user_id = ?", (new_offset, user_id))
 
         connection_db.commit()
@@ -817,7 +869,6 @@ def bulk_add_coin_time():
                 current_offset = elem[0]
                 new_offset = current_offset + time_offset
                 cursor_db.execute("UPDATE coins SET coin_value = ? WHERE coin_id = ?", (new_offset, elem_id))
-                print("even here")
 
         connection_db.commit()
         return jsonify({"status": "success"})
@@ -827,7 +878,7 @@ def bulk_add_coin_time():
         connection_db.close()
 
 
-# --------------------------- categories -------------------------------------------
+# ---------------------------users categories ---------------------------------
 @app.route('/admin/categories_user', methods=['GET'])
 def admin_user_categories():
     connection_db = sqlite3.connect(DATABASE_NAME)
@@ -852,9 +903,6 @@ def update_user_category():
     if not all([elem_id, elem_name]):
         return jsonify({"error": "All fields are required."}), 400
 
-    print(elem_id)
-    print(elem_name)
-
     try:
         cursor_db.execute("""
             UPDATE users_category
@@ -875,8 +923,6 @@ def update_user_category():
 def add_user_category():
     elem_name = request.form.get('category_name')
 
-    print(elem_name)
-
     connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
@@ -887,9 +933,7 @@ def add_user_category():
         cursor_db.execute(f"SELECT MAX(user_category_id) FROM users_category")
         new_id = cursor_db.fetchone()[0]
         new_id = new_id + 1 if new_id is not None else 1
-        print(new_id)
         temp = f"{new_id}, '{elem_name}'"
-        print(temp)
         cursor_db.execute("Insert INTO users_category VALUES (" + temp + ")")
         connection_db.commit()
     except sqlite3.Error as e:
@@ -936,22 +980,19 @@ def bulk_add_user_time_category():
     connection_db = sqlite3.connect(DATABASE_NAME)
     cursor_db = connection_db.cursor()
 
-    print(elem_ids)
-
     try:
         for elem_id in elem_ids:
-            print(elem_id)
-            cursor_db.execute("SELECT user_id, user_time_offset FROM users WHERE user_category = ?", (elem_id,))
+            cursor_db.execute("""SELECT users.user_id, user_time_offset 
+                              FROM users JOIN categories_rel ON users.user_id = categories_rel.user_id
+                              WHERE categories_rel.category_id = ?""", (elem_id,))
             elems = cursor_db.fetchall()
-
-            print("printing elems:")
-            print(elems)
 
             for elem in elems:
                 current_offset = elem[1]
                 new_offset = current_offset + time_offset
-                cursor_db.execute("UPDATE users SET user_time_offset = ? WHERE user_id = ?", (new_offset, elem[0]))
-                print("even here")
+                cursor_db.execute("""UPDATE users 
+                                  SET user_time_offset = ? 
+                                  WHERE user_id = ?""", (new_offset, elem[0]))
 
         connection_db.commit()
         return jsonify({"status": "success"})
@@ -960,9 +1001,134 @@ def bulk_add_user_time_category():
     finally:
         connection_db.close()
 
+# -------------------- users category relations--------------------------------
+@app.route('/admin/user_cat_relation', methods=['GET'])
+def admin_user_cat_relation():
+    connection_db = sqlite3.connect(DATABASE_NAME)
+    connection_db.row_factory = sqlite3.Row
+    cursor_db = connection_db.cursor()
+
+    rows = cursor_db.execute("""SELECT categories_rel.id, categories_rel.user_id, users.user_name,
+                                        categories_rel.category_id, users_category.user_category_name
+                                    FROM categories_rel
+                                        JOIN users ON users.user_id = categories_rel.user_id
+                                        JOIN users_category ON users_category.user_category_id = categories_rel.category_id;
+                             """).fetchall()
+
+    connection_db.close()
+
+    return render_template('admin_cat_rel_tmp.html', input_data=rows)
+
+@app.route('/admin/add_user_cat_rel', methods=['POST'])
+def add_user_cat_rel():
+    user_id_str = request.form.get('user_id')
+    cat_id_str = request.form.get('category_id')
+
+    connection_db = sqlite3.connect(DATABASE_NAME)
+    cursor_db = connection_db.cursor()
+
+    if not all([user_id_str, cat_id_str]):
+        return jsonify({"error": "All fields are required."}), 400
+
+    try:
+        cursor_db.execute("""
+            INSERT INTO categories_rel (user_id, category_id)
+                    VALUES (?, ?)
+        """, (int(user_id_str), int(cat_id_str)))
+
+        connection_db.commit()
+    except sqlite3.Error as e:
+        return jsonify({"error": f"error: {e}"})
+    finally:
+        connection_db.close()
+
+    return jsonify({"status": "success"})
+
+
+@app.route('/admin/update_user_cat_rel', methods=['POST'])
+def update_user_cat_rel():
+    row_id = request.form.get('row_id')
+    user_id_str = request.form.get('user_id')
+    cat_id_str = request.form.get('category_id')
+
+    connection_db = sqlite3.connect(DATABASE_NAME)
+    cursor_db = connection_db.cursor()
+
+    if not all([user_id_str, cat_id_str]):
+        return jsonify({"error": "All fields are required."}), 400
+
+    try:
+        cursor_db.execute("""
+            UPDATE categories_rel
+            SET user_id = ?, category_id = ?
+            WHERE id = ?
+        """, (int(user_id_str), int(cat_id_str), int(row_id)))
+
+        connection_db.commit()
+    except sqlite3.Error as e:
+        return jsonify({"error": f"error: {e}"})
+    finally:
+        connection_db.close()
+
+    return jsonify({"status": "success"})
+
+
+@app.route('/admin/delete_user_cat_rel', methods=['POST'])
+def delete_user_cat_rel():
+    elem_id = request.form.get('row_id')
+    if not elem_id:
+        return jsonify({"error": "id is required"}), 400
+
+    connection_db = sqlite3.connect(DATABASE_NAME)
+    cursor_db = connection_db.cursor()
+    try:
+        cursor_db.execute("DELETE FROM categories_rel WHERE id = ?", (elem_id,))
+        connection_db.commit()
+        return jsonify({"status": "success"})
+    except sqlite3.Error as e:
+        return jsonify({"error": f"An error occurred: {e}"}), 500
+    finally:
+        connection_db.close()
+
+# ---------------------- user categories relation second try ------------------
+@app.route('/admin/user_cat_relation_v02', methods=['GET'])
+def admin_user_cat_relation_v02():
+    connection_db = sqlite3.connect(DATABASE_NAME)
+    connection_db.row_factory = sqlite3.Row
+    cursor_db = connection_db.cursor()
+
+    users_rows = cursor_db.execute("""SELECT user_id, user_name FROM users""").fetchall()
+    categories_rows = cursor_db.execute("""SELECT user_category_id, user_category_name FROM users_category""").fetchall()
+    rel_rows = cursor_db.execute("""SELECT * FROM categories_rel""").fetchall()
+
+
+    connection_db.close()
+
+    return render_template('admin_cat_rel_tmp_v02.html', users=users_rows, categories=categories_rows, relation=rel_rows)
+
+
+@app.route('/admin/toggle_user_cat_rel', methods=['POST'])
+def toggle_user_cat_rel():
+    user_id = request.form.get('user_id')
+    category_id = request.form.get('category_id')
+    is_checked = request.form.get('is_checked') == 'on'
+
+    connection_db = sqlite3.connect(DATABASE_NAME)
+    cursor_db = connection_db.cursor()
+
+    if is_checked:
+        cursor_db.execute("INSERT INTO categories_rel (user_id, category_id) VALUES (?, ?)", (user_id, category_id))
+    else:
+        cursor_db.execute("DELETE FROM categories_rel WHERE user_id = ? AND category_id = ?", (user_id, category_id))
+
+    connection_db.commit()
+    connection_db.close()
+
+    return jsonify({"message": "Operation successful!"})
+
 
 # --------------------------------------- coin categories----------------------
-# takže to celé ještě jednou ale lehce upravené
+# almost identical to users category
 @app.route('/admin/categories_coin', methods=['GET'])
 def admin_coin_categories():
     connection_db = sqlite3.connect(DATABASE_NAME)
@@ -978,7 +1144,6 @@ def admin_coin_categories():
 
 @app.route('/admin/update_coin_category', methods=['POST'])
 def update_coin_category():
-    print("update coin category")
     elem_id = request.form.get('category_id')
     elem_name = request.form.get('category_name')
 
@@ -1018,9 +1183,7 @@ def add_coin_category():
         cursor_db.execute(f"SELECT MAX(coin_category_id) FROM coin_category")
         new_id = cursor_db.fetchone()[0]
         new_id = new_id + 1 if new_id is not None else 1
-        print(new_id)
         temp = f"{new_id}, '{elem_name}'"
-        print(temp)
         cursor_db.execute("Insert INTO coin_category VALUES (" + temp + ")")
         connection_db.commit()
     except sqlite3.Error as e:
@@ -1069,7 +1232,6 @@ def bulk_add_coin_time_category():
 
     try:
         for elem_id in elem_ids:
-            print(elem_id)
             cursor_db.execute("SELECT coin_id, coin_value FROM coins WHERE coin_category = ?", (elem_id,))
             elems = cursor_db.fetchall()
 
