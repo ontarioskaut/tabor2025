@@ -132,8 +132,10 @@ def seconds_to_text(total_seconds: int):
         return f"-{formatted_time}"
     else:
         return formatted_time
-
-
+    
+def count_remaining_time(timestamp: str, offset: int):
+    time_diff = (datetime.now() - datetime.fromisoformat(timestamp)).total_seconds()
+    return offset - round(time_diff)
 
 
 def test_show_users(cur):
@@ -193,8 +195,7 @@ def get_identification():
 
     if user:
         name, offset, start_str = user
-        time_diff = (datetime.now() - datetime.fromisoformat(start_str)).total_seconds()
-        time = -round(time_diff) + int(offset)
+        time = count_remaining_time(start_str, offset)
         return jsonify({"name":name, "user_time": time})
     else:
         return jsonify({"error": "User not found"}), 404
@@ -212,11 +213,11 @@ def addition_of_time(user_tag_id, time_to_change, is_addition: bool):
     connection_db = sqlite3.connect(database_name)
     cursor_db = connection_db.cursor()
 
-    cursor_db.execute("SELECT user_time_offset FROM users WHERE user_tag_id = ?", (user_tag_id,))
+    cursor_db.execute("SELECT user_time_offset, user_game_start_timestamp FROM users WHERE user_tag_id = ?", (user_tag_id,))
     user = cursor_db.fetchone()
 
     if user:
-        current_offset = user[0]
+        current_offset, start_time = user
         if not is_addition:
             time_to_change *= -1
         new_offset = current_offset + time_to_change
@@ -224,7 +225,8 @@ def addition_of_time(user_tag_id, time_to_change, is_addition: bool):
         connection_db.commit()
         connection_db.close()
 
-        return jsonify({"status": "success", "user_time": new_offset})
+        time = count_remaining_time(start_time, new_offset)
+        return jsonify({"status": "success", "user_time": time})
     else:
         connection_db.close()
         return jsonify({"error": "User not found"}), 404
@@ -257,7 +259,7 @@ def add_coinval():
     connection_db = sqlite3.connect(database_name)
     cursor_db = connection_db.cursor()
 
-    cursor_db.execute("SELECT user_time_offset FROM users WHERE user_tag_id = ?", (user_tag_id,))
+    cursor_db.execute("SELECT user_time_offset, user_game_start_timestamp FROM users WHERE user_tag_id = ?", (user_tag_id,))
     user = cursor_db.fetchone()
 
     cursor_db.execute("SELECT coin_value, is_active FROM coins WHERE coin_tag_id = ?", (coin_tag_id,))
@@ -279,7 +281,9 @@ def add_coinval():
         
         connection_db.commit()
         connection_db.close()
-        return jsonify({"status": "success", "user_time": new_offset})
+
+        time = count_remaining_time(user[1], new_offset)
+        return jsonify({"status": "success", "user_time": time})
 
     else:
         connection_db.close()
@@ -384,9 +388,7 @@ def get_time_simple():
     for acro, offset, start, disp in rows:
         if int(disp) == 0:
             continue
-        time_diff = (datetime.now() - datetime.fromisoformat(start)).total_seconds()
-
-        user_dict[acro] = -round(time_diff) + int(offset)
+        user_dict[acro] = count_remaining_time(start, offset)
 
     return jsonify(user_dict)
 
@@ -403,9 +405,8 @@ def get_time():
     for acro, offset, start, disp in rows:
         if int(disp) == 0:
             continue
-        time_diff = (datetime.now() - datetime.fromisoformat(start)).total_seconds()
 
-        user_dict[acro] = -round(time_diff) + int(offset)
+        user_dict[acro] = count_remaining_time(start, offset)
 
     return jsonify(user_dict)
 

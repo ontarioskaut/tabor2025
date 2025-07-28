@@ -19,8 +19,6 @@ De facto jen operace nad databází.
 
 
 ## TO-DO (věcí o kterých asi vím)
-- přesné návratové hodnoty - oproti našemu dokumentu v některých funkcích vracím offset ne atuální čas, klidně to změním - jo, to by bylo fajn
-    - v sekundách
 -  kategorie - speciální relace user id - category id, v tabulce select boxy, každý uživatel může mít více kategorií
 - trochu jsem pohýbal se strukturou display_api - doplněny announcements. Ty by se hodilo umět editovat v admin gui
     - v tu chvíli si to chce pamatovat nastavení a annoucments i mimo kód, takže mít dvě další tabulky v databázi...
@@ -43,7 +41,8 @@ De facto jen operace nad databází.
     - log se zatím dá zobrazit v test_log
     - a nevím co všechno vlastně chceme logovat, pokud jen změnu offsetů, tak to není takový problém doplnit jako kompletní přehled všech operací
     - kdyžtak je k to na /show_logs a je tam filtr na uživatele
-
+- přesné návratové hodnoty - oproti našemu dokumentu v některých funkcích vracím offset ne atuální čas, klidně to změním - jo, to by bylo fajn
+    - v sekundách
 
 ## API features:
 ### API for end nodes
