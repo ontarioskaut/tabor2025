@@ -972,6 +972,13 @@ def bulk_add_user_time_category():
     if not elem_ids or not time_offset:
         return jsonify({"error": "elem_ids and time_offset are required"}), 400
 
+    symbol = '+'
+    if not time_offset[-1].isdecimal():
+        symbol = time_offset[-1]
+        if symbol not in ALLOWED_OPERATORS:
+            return jsonify({"error": "time_offset must be an integer"}), 400
+        time_offset = time_offset[:-1]
+
     try:
         time_offset = int(time_offset)
     except ValueError:
@@ -989,7 +996,8 @@ def bulk_add_user_time_category():
 
             for elem in elems:
                 current_offset = elem[1]
-                new_offset = current_offset + time_offset
+                #new_offset = current_offset + time_offset
+                new_offset = count_new_offset(current_offset, time_offset, symbol)
                 cursor_db.execute("""UPDATE users 
                                   SET user_time_offset = ? 
                                   WHERE user_id = ?""", (new_offset, elem[0]))
@@ -1221,6 +1229,13 @@ def bulk_add_coin_time_category():
 
     if not elem_ids or not time_offset:
         return jsonify({"error": "elem_ids and time_offset are required"}), 400
+    
+    symbol = '+'
+    if not time_offset[-1].isdecimal():
+        symbol = time_offset[-1]
+        if symbol not in ALLOWED_OPERATORS:
+            return jsonify({"error": "time_offset must be an integer"}), 400
+        time_offset = time_offset[:-1]
 
     try:
         time_offset = int(time_offset)
@@ -1237,7 +1252,7 @@ def bulk_add_coin_time_category():
 
             for elem in elems:
                 current_offset = elem[1]
-                new_offset = current_offset + time_offset
+                new_offset = count_new_offset(current_offset, time_offset, symbol)
                 cursor_db.execute("UPDATE coins SET coin_value = ? WHERE coin_id = ?", (new_offset, elem[0]))
 
         connection_db.commit()

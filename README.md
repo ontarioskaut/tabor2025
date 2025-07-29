@@ -27,10 +27,7 @@ De facto jen operace nad databází.
 - tlačítko pro synchronizaci času s prohlížečem (hlavní počítač nebude mít přístup k NTP a ani nebude mít RTC)
 - aplikace do mobilu pro aktivaci
 
-- přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
-    podíváme se na poslední znak a podle toho upravíme
-    - jo, mění to podle posledního znaku
-    - zatím ve speciálním api a u user bulk, ale to se doplní
+
 
 ## Done To-Do pro kontrolu
 - displayed - změnit number input na checkbox
@@ -51,9 +48,11 @@ De facto jen operace nad databází.
     - funguje to
     - a asi i dobře a asi i lépe než jsem původně myslel že to udělám
     - v /admin stránce je na to odkaz, někdy třebas doplnim tu "dokumentaci"
-
-
-
+    - ale u coinů jsem nechal jen jednu kategorii
+- přidat více režimů pro "Time offset to add" - samotný offset, násobení (procenta), nastavit absolutně
+    podíváme se na poslední znak a podle toho upravíme
+    - jo, mění to podle posledního znaku
+    - ve speciálním api a v bulk polích
 
 
 ## API features:
