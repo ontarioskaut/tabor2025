@@ -187,7 +187,7 @@ def test_show_users(cur):
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 @app.route('/')
 def index():
-    return "hello world <img src='/static/others/pic01.png'>"
+    return render_template('index.html')
 
 
 # -----------------------------------------------------------------------------
@@ -483,45 +483,7 @@ def set_user_field():
 #------------------------------------------------------------------------------
 @app.route('/admin')
 def dashboard():
-    # HTML for the dashboard with links
-    html = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Admin Dashboard</title>
-            <!-- Bootstrap CSS -->
-            <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-        </head>
-        <body>
-            <div class="container mt-5">
-                <h1 class="mb-4 text-center">Welcome to the Admin Dashboard</h1>
-                <div class="row justify-content-center">
-                    <div class="col-md-6">
-                        <ul class="list-group">
-                            <li class="list-group-item"><a href="/admin/users" class="text-decoration-none">Users</a></li>
-                            <li class="list-group-item"><a href="/admin/coins" class="text-decoration-none">Coins</a></li>
-                            <li class="list-group-item"><a href="/admin/categories_user" class="text-decoration-none">User categories</a></li>
-                            <li class="list-group-item"><a href="/admin/categories_coin" class="text-decoration-none">Coin categories</a></li>
-                            <li class="list-group-item"><a href="/show_logs" class="text-decoration-none">Logs</a></li>
-                            <li class="list-group-item"><a href="/show_times_02" class="text-decoration-none">Live timers</a></li>
-                            <li class="list-group-item"><a href="/show_times" class="text-decoration-none">Current timers</a></li>
-                            <li class="list-group-item"><a href="/admin/user_cat_relation_v02" class="text-decoration-none">User Category Relation v02</a></li>
-                            <li class="list-group-item"><a href="/admin/user_cat_relation" class="text-decoration-none">User Category Relation</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bootstrap JS and dependencies -->
-            <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-        </body>
-        </html>
-    """
-    return render_template_string(html)
+    return render_template('admin_index.html')
 
 # -----------------------------users-------------------------------------------
 
