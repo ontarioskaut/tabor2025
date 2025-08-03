@@ -213,9 +213,9 @@ def bulk_add_user_time():
 
     symbol = "+"
     if not time_offset[-1].isdecimal():
+        symbol = time_offset[-1]
         if symbol not in config.ALLOWED_OPERATORS:
             return jsonify({"error": "time_offset must be an integer"}), 400
-        symbol = time_offset[-1]
         time_offset = time_offset[:-1]
 
     try:
@@ -534,6 +534,7 @@ def bulk_add_user_time_category():
     symbol = "+"
     if not time_offset[-1].isdecimal():
         symbol = time_offset[-1]
+        print(symbol)
         if symbol not in config.ALLOWED_OPERATORS:
             return jsonify({"error": "time_offset must be an integer"}), 400
         time_offset = time_offset[:-1]
