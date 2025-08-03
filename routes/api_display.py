@@ -33,6 +33,39 @@ def get_time_data():
     return user_dict
 
 
+def get_announcements():
+    """
+    Returns list of visible announcements
+    Format: [
+        {"id": int, "for_display": str, "order": int, "data": str (base64 PNG), "visible": bool}
+    ]
+    """
+    conn = sqlite3.connect(config.DATABASE_NAME)
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT id, for_display, "order", data, visible
+        FROM announcements
+        WHERE visible = 1
+        ORDER BY "order" DESC
+        """
+    )
+    rows = cursor.fetchall()
+    conn.close()
+
+    announcements = [
+        {
+            "id": row[0],
+            "for_display": row[1],
+            "order": row[2] if row[2] is not None else 9999,
+            "data": row[3],
+            "visible": bool(row[4]),
+        }
+        for row in rows
+    ]
+    return announcements
+
+
 @bp_display.route("/get_time_simple", methods=["GET"])
 def get_time_simple():
     return jsonify(get_time_data())

@@ -71,6 +71,11 @@ class EngineBase:
         formatted_times = []
         for entry in time_data:
             for label, total_seconds in entry.items():
+                # If total_seconds is 0, mark as DEAD
+                if total_seconds == 0:
+                    formatted_times.append((label, "DEAD"))
+                    continue
+
                 days = total_seconds // 86400
                 seconds = total_seconds % 86400
 
@@ -104,90 +109,146 @@ class EngineBase:
             if idx >= len(formatted_times):
                 continue
 
-            label, day_char, hh, mm, ss = formatted_times[idx]
+            data = formatted_times[idx]
 
-            label_width = draw.textlength(label, font=bold_font)
-            space_width = 1
-            day_width = draw.textlength(day_char, font=regular_font)
-            colon_width = 3
-            hh_width = draw.textlength(hh, font=regular_font)
-            mm_width = draw.textlength(mm, font=regular_font)
-            ss_width = draw.textlength(ss, font=regular_font)
+            # DEAD mode
+            if len(data) == 2 and data[1] == "DEAD":
+                label = data[0]
+                dead_text = " DEAD"
 
-            total_width = (
-                label_width
-                + space_width
-                + day_width
-                + colon_width
-                + hh_width
-                + colon_width
-                + mm_width
-                + colon_width
-                + ss_width
-            )
+                label_width = draw.textlength(label, font=bold_font)
+                dead_width = draw.textlength(dead_text, font=regular_font)
+                total_width = label_width + 2 + dead_width
 
-            x = col_width * (idx % 2) + (col_width - total_width) // 2 + 2
-            y = row_height * (idx // 2) + (row_height - bold_font.size) // 2
+                x = col_width * (idx % 2) + (col_width - total_width) // 2 + 2
+                y = row_height * (idx // 2) + (row_height - bold_font.size) // 2
 
-            draw.text(
-                (x, y),
-                label,
-                fill=255 if not self.color else (255, 255, 255),
-                font=bold_font,
-            )
-            x += label_width + space_width
+                # Draw label
+                draw.text(
+                    (x, y),
+                    label,
+                    fill=255 if not self.color else (255, 255, 255),
+                    font=bold_font,
+                )
+                x += label_width + 2
 
-            draw.text(
-                (x, y),
-                day_char,
-                fill=255 if not self.color else (255, 255, 255),
-                font=regular_font,
-            )
-            x += day_width
-            draw.text(
-                (x - 1, y),
-                ":",
-                fill=255 if not self.color else (255, 255, 255),
-                font=regular_font,
-            )
-            x += colon_width - 1
+                # Draw DEAD
+                draw.text(
+                    (x, y),
+                    dead_text,
+                    fill=255 if not self.color else (255, 255, 255),
+                    font=regular_font,
+                )
 
-            draw.text(
-                (x, y),
-                hh,
-                fill=255 if not self.color else (255, 255, 255),
-                font=regular_font,
-            )
-            x += hh_width
-            draw.text(
-                (x - 1, y),
-                ":",
-                fill=255 if not self.color else (255, 255, 255),
-                font=regular_font,
-            )
-            x += colon_width - 1
-            draw.text(
-                (x, y),
-                mm,
-                fill=255 if not self.color else (255, 255, 255),
-                font=regular_font,
-            )
-            x += mm_width
-            draw.text(
-                (x - 1, y),
-                ":",
-                fill=255 if not self.color else (255, 255, 255),
-                font=regular_font,
-            )
-            x += colon_width - 1
-            draw.text(
-                (x, y),
-                ss,
-                fill=255 if not self.color else (255, 255, 255),
-                font=regular_font,
-            )
+            else:
+                label, day_char, hh, mm, ss = data
+
+                label_width = draw.textlength(label, font=bold_font)
+                space_width = 1
+                day_width = draw.textlength(day_char, font=regular_font)
+                colon_width = 3
+                hh_width = draw.textlength(hh, font=regular_font)
+                mm_width = draw.textlength(mm, font=regular_font)
+                ss_width = draw.textlength(ss, font=regular_font)
+
+                total_width = (
+                    label_width
+                    + space_width
+                    + day_width
+                    + colon_width
+                    + hh_width
+                    + colon_width
+                    + mm_width
+                    + colon_width
+                    + ss_width
+                )
+
+                x = col_width * (idx % 2) + (col_width - total_width) // 2 + 2
+                y = row_height * (idx // 2) + (row_height - bold_font.size) // 2
+
+                draw.text(
+                    (x, y),
+                    label,
+                    fill=255 if not self.color else (255, 255, 255),
+                    font=bold_font,
+                )
+                x += label_width + space_width
+
+                draw.text(
+                    (x, y),
+                    day_char,
+                    fill=255 if not self.color else (255, 255, 255),
+                    font=regular_font,
+                )
+                x += day_width
+                draw.text(
+                    (x - 1, y),
+                    ":",
+                    fill=255 if not self.color else (255, 255, 255),
+                    font=regular_font,
+                )
+                x += colon_width - 1
+
+                draw.text(
+                    (x, y),
+                    hh,
+                    fill=255 if not self.color else (255, 255, 255),
+                    font=regular_font,
+                )
+                x += hh_width
+                draw.text(
+                    (x - 1, y),
+                    ":",
+                    fill=255 if not self.color else (255, 255, 255),
+                    font=regular_font,
+                )
+                x += colon_width - 1
+                draw.text(
+                    (x, y),
+                    mm,
+                    fill=255 if not self.color else (255, 255, 255),
+                    font=regular_font,
+                )
+                x += mm_width
+                draw.text(
+                    (x - 1, y),
+                    ":",
+                    fill=255 if not self.color else (255, 255, 255),
+                    font=regular_font,
+                )
+                x += colon_width - 1
+                draw.text(
+                    (x, y),
+                    ss,
+                    fill=255 if not self.color else (255, 255, 255),
+                    font=regular_font,
+                )
 
         return True
+
+    def draw_announcement(self, base64_data):
+        from io import BytesIO
+
+        from PIL import Image, ImageOps
+
+        # Decode base64 to image
+        img = Image.open(BytesIO(base64.b64decode(base64_data)))
+
+        # Ensure mode matches target (convert to "1" or "RGB")
+        target_mode = "RGB" if self.color else "1"
+        img = img.convert(target_mode)
+
+        # Invert colors (white <-> black)
+        if target_mode == "RGB":
+            img = ImageOps.invert(img)
+        else:
+            # For 1-bit images, invert manually: convert to L, invert, then back
+            img = img.convert("L")
+            img = ImageOps.invert(img)
+            img = img.point(lambda x: 255 if x > 128 else 0, "1")
+
+        # Paste inverted image into display buffer
+        self.display_buffer.paste(img)
 
     # --------------------------------------------------------
     # BUFFER CONTROL
