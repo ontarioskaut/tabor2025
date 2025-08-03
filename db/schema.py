@@ -108,6 +108,20 @@ def create_categories_relation(cur):
     )
 
 
+def create_announcements_table(cur):
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS announcements (
+            id INTEGER PRIMARY KEY,
+            for_display TEXT,
+            "order" INTEGER,
+            data TEXT,
+            visible BOOLEAN DEFAULT 1
+        )
+    """
+    )
+
+
 def create_tables(name: str):
     connection_db = sqlite3.connect(name)
     cursor_db = connection_db.cursor()
@@ -120,6 +134,8 @@ def create_tables(name: str):
 
     create_log_table(cursor_db)
     create_log_triggers(cursor_db)
+
+    create_announcements_table(cursor_db)
 
     connection_db.commit()
     cursor_db.close()

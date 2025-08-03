@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from flask import Blueprint, jsonify, request, send_file
+from flask import Blueprint, abort, jsonify, request, send_file
 
 import config
 from db.helpers import insert_coin, insert_user
@@ -25,7 +25,6 @@ def get_time_data():
     connection_db.close()
 
     user_dict = {}
-
     for acro, offset, start, disp in rows:
         if int(disp) == 0:
             continue
@@ -36,13 +35,11 @@ def get_time_data():
 
 @bp_display.route("/get_time_simple", methods=["GET"])
 def get_time_simple():
-    # reuse the same logic
     return jsonify(get_time_data())
 
 
 @bp_display.route("/get_time", methods=["GET"])
 def get_time():
-    # reuse the same logic (kept identical for now)
     return jsonify(get_time_data())
 
 
@@ -63,15 +60,12 @@ def api_times_init():
     for name, offset, start, is_disp in rows:
         if is_disp == 0:
             continue
-        result.append(
-            {"name": name, "offset": offset, "start": start}  # ISO format is fine
-        )
+        result.append({"name": name, "offset": offset, "start": start})
     return jsonify(result)
 
 
 @bp_display.route("/display_output/<display_name>", methods=["GET"])
 def get_display_output(display_name):
-
     displays = load_display_engines()
     valid_names = [d["name"] for d in displays]
     if display_name not in valid_names:
@@ -95,3 +89,104 @@ def get_display_output(display_name):
         return jsonify({"display": display_name, "frame_base64": base64_data})
 
     abort(400, description="Invalid format. Use 'png' or 'base64'.")
+
+
+# -------------------
+# ANNOUNCEMENTS API
+# -------------------
+
+
+@bp_display.route("/announcements", methods=["GET"])
+def list_announcements():
+    """List all announcements"""
+    conn = sqlite3.connect(config.DATABASE_NAME)
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT id, for_display, "order", data, visible
+        FROM announcements
+        ORDER BY "order" ASC
+    """
+    )
+    rows = cursor.fetchall()
+    conn.close()
+
+    announcements = [
+        {
+            "id": r[0],
+            "for_display": r[1],
+            "order": r[2],
+            "data": r[3],
+            "visible": bool(r[4]) if r[4] is not None else True,
+        }
+        for r in rows
+    ]
+    return jsonify(announcements)
+
+
+@bp_display.route("/announcements", methods=["POST"])
+def create_announcement():
+    """Create new announcement"""
+    data = request.get_json()
+    if (
+        not data
+        or "for_display" not in data
+        or "order" not in data
+        or "data" not in data
+    ):
+        abort(400, description="Missing required fields")
+
+    conn = sqlite3.connect(config.DATABASE_NAME)
+    cursor = conn.cursor()
+    visible = data.get("visible", True)
+
+    cursor.execute(
+        'INSERT INTO announcements (for_display, "order", data, visible) VALUES (?, ?, ?, ?)',
+        (data["for_display"], data["order"], data["data"], int(visible)),
+    )
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+
+    return jsonify({"id": new_id, **data}), 201
+
+
+@bp_display.route("/announcements/<int:announcement_id>", methods=["PUT"])
+def update_announcement(announcement_id):
+    """Update announcement"""
+    data = request.get_json()
+    if not data:
+        abort(400, description="No data provided")
+
+    fields = []
+    values = []
+    for field in ["for_display", "order", "data", "visible"]:
+        if field in data:
+            fields.append(f'"{field}" = ?')
+            values.append(data[field] if field != "visible" else int(data[field]))
+
+    if not fields:
+        abort(400, description="No updatable fields provided")
+
+    values.append(announcement_id)
+    query = f"UPDATE announcements SET {', '.join(fields)} WHERE id = ?"
+
+    conn = sqlite3.connect(config.DATABASE_NAME)
+    cursor = conn.cursor()
+    cursor.execute(query, values)
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Announcement updated"})
+
+
+@bp_display.route("/announcements/<int:announcement_id>", methods=["DELETE"])
+def delete_announcement(announcement_id):
+    """Delete announcement"""
+    conn = sqlite3.connect(config.DATABASE_NAME)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM announcements WHERE id = ?", (announcement_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Announcement deleted"})

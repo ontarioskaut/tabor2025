@@ -200,3 +200,23 @@ def show_logs():
     connection_db.close()
 
     return render_template("logs_tmp.html", logs=rows)
+
+
+@bp_admin_pages.route("/announcements", methods=["GET"])
+def admin_announcements():
+    connection_db = sqlite3.connect(config.DATABASE_NAME)
+    connection_db.row_factory = sqlite3.Row
+    cursor_db = connection_db.cursor()
+
+    rows = cursor_db.execute(
+        'SELECT id, for_display, "order", data, visible FROM announcements ORDER BY "order" ASC'
+    ).fetchall()
+
+    connection_db.close()
+
+    return render_template(
+        "admin_announcements.html",
+        announcements=rows,
+        displays=config.DISPLAYS,
+        config=config,
+    )
