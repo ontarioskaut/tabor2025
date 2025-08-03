@@ -20,7 +20,9 @@ def count_remaining_time(timestamp: str, offset: int):
 
 
 def count_new_offset(old_offset: int, value: int, mode: str):
+    print(old_offset, value, mode)
     if mode == "+":
+        print("hehe")
         return old_offset + value
     elif mode == "-":
         return old_offset - value
@@ -36,3 +38,10 @@ def count_new_offset(old_offset: int, value: int, mode: str):
         return value
     #assert(false)
     return 0
+
+
+def count_new_time(old_offset: int, start: str, value: int, symbol: str):
+    rem_time = count_remaining_time(start, old_offset)
+    base_offset = old_offset - rem_time
+
+    return base_offset + count_new_offset(rem_time, value, symbol)

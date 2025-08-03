@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request
 
 import config
 from db.helpers import insert_coin, insert_user
-from utils.time_utils import count_new_offset, count_remaining_time
+from utils.time_utils import count_new_offset, count_remaining_time, count_new_time
 
 bp_admin = Blueprint("admin", __name__)
 
@@ -229,16 +229,17 @@ def bulk_add_user_time():
     try:
         for user_id in user_ids:
             cursor_db.execute(
-                "SELECT user_time_offset FROM users WHERE user_id = ?", (user_id,)
+                "SELECT user_time_offset, user_game_start_timestamp FROM users WHERE user_id = ?", (user_id,)
             )
             user = cursor_db.fetchone()
 
             if user:
-                current_offset = user[0]
-                new_offset = count_new_offset(current_offset, time_offset, symbol)
+                current_offset, start = user
+
+                new_time = count_new_time(current_offset, start, time_offset, symbol)
                 cursor_db.execute(
                     "UPDATE users SET user_time_offset = ? WHERE user_id = ?",
-                    (new_offset, user_id),
+                    (new_time, user_id),
                 )
 
         connection_db.commit()
