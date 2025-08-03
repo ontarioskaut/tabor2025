@@ -461,6 +461,113 @@
 
 ---
 
+### **Get display output (`display_output/<display_name>` [GET]):**
+- **Description:**  
+  Returns the current rendered display output in PNG or Base64 format.
+- **Endpoint:** `/api/display/display_output/<display_name>`
+- **Input (query params):**
+  - `format` (optional) – `png` (default) or `base64`
+- **Output (PNG):**
+Binary image file served with `image/png` content type.
+- **Output (Base64):**
+```json
+{
+  "display": "Display1",
+  "frame_base64": "iVBORw0KGgoAAAANSUhEUgAA..."
+}
+```
+- **Errors:**
+```json
+{ "error": "Display not found" }
+{ "error": "Display image not available" }
+{ "error": "Display frame not available" }
+{ "error": "Invalid format. Use 'png' or 'base64'." }
+```
+
+---
+
+### **List announcements (`announcements` [GET]):**
+- **Description:**  
+  Returns a list of all announcements stored in the database.
+- **Endpoint:** `/api/display/announcements`
+- **Input:** *(no parameters)*
+- **Output:**
+```json
+[
+  {
+    "id": 1,
+    "for_display": "Display1",
+    "order": 1,
+    "data": "<base64 PNG>",
+    "visible": true
+  }
+]
+```
+
+---
+
+### **Create announcement (`announcements` [POST]):**
+- **Description:**  
+  Creates a new announcement.
+- **Endpoint:** `/api/display/announcements`
+- **Input (JSON):**
+```json
+{
+  "for_display": "Display1",
+  "order": 1,
+  "data": "<base64 PNG>",
+  "visible": true
+}
+```
+- **Output:**
+```json
+{
+  "id": 5,
+  "for_display": "Display1",
+  "order": 1,
+  "data": "<base64 PNG>",
+  "visible": true
+}
+```
+- **Errors:**
+```json
+{ "error": "Missing required fields" }
+```
+
+---
+
+### **Update announcement (`announcements/<id>` [PUT]):**
+- **Description:**  
+  Updates an existing announcement.
+- **Endpoint:** `/api/display/announcements/<id>`
+- **Input (JSON):**
+```json
+{
+  "for_display": "Display1",
+  "order": 2,
+  "data": "<base64 PNG>",
+  "visible": false
+}
+```
+- **Output:**
+```json
+{ "message": "Announcement updated" }
+```
+
+---
+
+### **Delete announcement (`announcements/<id>` [DELETE]):**
+- **Description:**  
+  Deletes an announcement.
+- **Endpoint:** `/api/display/announcements/<id>`
+- **Input:** *(no parameters)*
+- **Output:**
+```json
+{ "message": "Announcement deleted" }
+```
+
+---
+
 ## Misc API (`/api/misc`):
 
 ### **Get logs (`get_logs` [GET]):**
