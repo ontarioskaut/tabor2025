@@ -12,11 +12,11 @@ from routes.pages_admin import bp_admin_pages
 app = Flask(__name__, static_url_path="/static", static_folder="static")
 
 # Register blueprints
-app.register_blueprint(bp_nodes, url_prefix='/api/nodes')
-app.register_blueprint(bp_admin, url_prefix='/api/admin')
-app.register_blueprint(bp_admin_pages, url_prefix='/admin')
-app.register_blueprint(bp_display, url_prefix='/api/display')
-app.register_blueprint(bp_misc, url_prefix='/api/misc')
+app.register_blueprint(bp_nodes, url_prefix="/api/nodes")
+app.register_blueprint(bp_admin, url_prefix="/api/admin")
+app.register_blueprint(bp_admin_pages, url_prefix="/admin")
+app.register_blueprint(bp_display, url_prefix="/api/display")
+app.register_blueprint(bp_misc, url_prefix="/api/misc")
 
 
 @app.route("/")

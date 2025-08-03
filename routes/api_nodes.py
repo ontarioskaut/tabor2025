@@ -1,11 +1,12 @@
 import sqlite3
+from datetime import datetime
 
 from flask import Blueprint, jsonify, request
-from datetime import datetime
 
 import config
 from db.helpers import insert_coin, insert_user
-from utils.time_utils import count_new_offset, count_remaining_time, count_new_time
+from utils.time_utils import (count_new_offset, count_new_time,
+                              count_remaining_time)
 
 bp_nodes = Blueprint("nodes", __name__)
 
@@ -30,7 +31,7 @@ def addition_of_time(user_tag_id, time_to_change, mode: str = "+"):
 
     if user:
         current_offset, start_time = user
-        #new_offset = count_new_offset(current_offset, time_to_change, mode)
+        # new_offset = count_new_offset(current_offset, time_to_change, mode)
         new_offset = count_new_time(current_offset, start_time, time_to_change, mode)
         cursor_db.execute(
             "UPDATE users SET user_time_offset = ? WHERE user_tag_id = ?",
@@ -253,4 +254,3 @@ def init_user_tag():
     connection_db.close()
 
     return jsonify(response)
-

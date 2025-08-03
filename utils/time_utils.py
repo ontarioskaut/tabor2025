@@ -36,7 +36,7 @@ def count_new_offset(old_offset: int, value: int, mode: str):
         return old_offset + value * 24 * 60 * 60
     elif mode == "s":
         return value
-    #assert(false)
+    # assert(false)
     return 0
 
 

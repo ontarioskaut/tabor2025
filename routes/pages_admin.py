@@ -193,4 +193,3 @@ def show_logs():
     connection_db.close()
 
     return render_template("logs_tmp.html", logs=rows)
-

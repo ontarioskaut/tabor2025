@@ -49,7 +49,8 @@ def get_time():
         user_dict[acro] = count_remaining_time(start, offset)
 
     return jsonify(user_dict)
-    
+
+
 @bp_display.route("/show_times", methods=["GET"])
 def api_times_init():
     connection_db = sqlite3.connect(config.DATABASE_NAME)
@@ -71,4 +72,3 @@ def api_times_init():
             {"name": name, "offset": offset, "start": start}  # ISO format is fine
         )
     return jsonify(result)
-
