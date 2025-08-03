@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Displays</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <script src="/static/js/bootstrap.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .display-card {
+            box-shadow: 0 4px 8px rgba(0,0,0,.05);
+            transition: transform 0.2s ease-in-out;
+            margin-bottom: 20px;
+        }
+        .display-img {
+            border: 1px solid #ccc;
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        h5 {
+            margin: 0;
+        }
+    </style>
+    <script>
+        const displays = {{ displays|tojson }};
+        const refreshInterval = {{ config.WEB_REFRESH_INTERVAL }};
+        const maxWidth = Math.max(...displays.map(d => d.resolution[0]));
+
+        function updateImages() {
+            displays.forEach(display => {
+                const img = document.getElementById(`img-${display.name}`);
+                img.src = `/api/display/display_output/${display.name}?format=png&cb=${Date.now()}`;
+            });
+        }
+
+        function scaleDisplays() {
+            displays.forEach(display => {
+                const img = document.getElementById(`img-${display.name}`);
+                const scale = display.resolution[0] / maxWidth * 100;
+                img.style.width = scale + "%";
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            updateImages();
+            scaleDisplays();
+            setInterval(updateImages, refreshInterval);
+        });
+    </script>
+</head>
+<body>
+    <div class="container mt-3">
+        <h1 class="mb-4 text-center">Live Displays</h1>
+        {% for display in displays %}
+        <div class="card display-card text-center">
+            <div class="card-header">
+                <h5 class="text-primary">{{ display.name }}</h5>
+            </div>
+            <div class="card-body p-2">
+                <img id="img-{{ display.name }}" class="display-img mb-2" alt="Display {{ display.name }}">
+                <button class="btn btn-sm btn-outline-secondary" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#details-{{ display.name }}">
+                    Show Details
+                </button>
+                <div class="collapse mt-2" id="details-{{ display.name }}">
+                    <ul class="list-group">
+                        {% for key, value in display.items() %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ key }}</span>
+                            <span class="fw-bold">{{ value }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
+

@@ -169,6 +169,13 @@ def show_times_02():
     return render_template("times_tiles_v02.html", config=config)
 
 
+@bp_admin_pages.route("/live_displays", methods=["GET"])
+def live_displays():
+    return render_template(
+        "live_displays.html", displays=config.DISPLAYS, config=config
+    )
+
+
 @bp_admin_pages.route("/show_logs", methods=["GET"])
 def show_logs():
     user = request.args.get("user_id")
