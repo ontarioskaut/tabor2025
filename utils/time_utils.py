@@ -25,6 +25,14 @@ def count_new_offset(old_offset: int, value: int, mode: str):
     elif mode == "-":
         return old_offset - value
     elif mode == "*":
-        return int(old_offset * value)
+        #return int(old_offset * value)
+        return old_offset * value
     elif mode == "%":
         return int(old_offset * ((100 + value) / 100))
+    elif mode == "h":
+        return old_offset + value * 60 * 60
+    elif mode == "d":
+        return old_offset + value * 24 * 60 * 60
+    
+    #assert(false)
+    return 0

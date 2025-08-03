@@ -1,6 +1,7 @@
 import sqlite3
 
 from flask import Blueprint, jsonify, request
+from datetime import datetime
 
 import config
 from db.helpers import insert_coin, insert_user
@@ -28,7 +29,6 @@ def addition_of_time(user_tag_id, time_to_change, mode: str = "+"):
 
     if user:
         current_offset, start_time = user
-        print(user)
         new_offset = count_new_offset(current_offset, time_to_change, mode)
         cursor_db.execute(
             "UPDATE users SET user_time_offset = ? WHERE user_tag_id = ?",
@@ -101,7 +101,7 @@ def change_time():
     symbol = "+"
     if not time_to_add[-1].isdecimal():
         symbol = time_to_add[-1]
-        if symbol not in ALLOWED_OPERATORS:
+        if symbol not in config.ALLOWED_OPERATORS:
             return jsonify({"error": "time must be integer"}), 404
         else:
             time_to_add = time_to_add[:-1]
