@@ -73,7 +73,7 @@
     }
 
     async function fetchInitialData() {
-        const response = await fetch('/show_times_api');
+        const response = await fetch('/api/display/show_times');
         userData = await response.json();
         renderGrid();
         updateTimers();
@@ -81,7 +81,7 @@
 
     fetchInitialData().then(() => {
         setInterval(updateTimers, 100); // update every 100ms
-        setInterval(fetchInitialData, 10000); // refresh full data from backend
+        setInterval(fetchInitialData, {{ config.WEB_REFRESH_INTERVAL }} ); // refresh full data from backend
     });
 </script>
 

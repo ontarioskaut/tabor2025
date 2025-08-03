@@ -2,31 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coin Data</title>
     <link rel="stylesheet" href="/static/css/bootstrap.css">
     <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/common.js"></script>
     <script>
-        function handleForms(event, url) {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-            fetch(url, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    alert('Operation successful!');
-                    window.location.reload();
-                }
-            })
-            .catch(error => {
-                alert('An error occurred: ' + error);
-            });
-        }
-
         function toggleAllCheckboxes(source) {
             const checkboxes = document.querySelectorAll('.coinCheckbox');
             checkboxes.forEach(cb => cb.checked = source.checked);
@@ -42,7 +23,7 @@
                 return;
             }
 
-            fetch('/bulk_add_coin_time', {
+            fetch('/api/admin/bulk_add_coin_time', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -97,7 +78,7 @@
             <tbody>
                 {% for coin in coins %}
                 <tr>
-                    <form onsubmit="handleForms(event, '/admin/update_coin')" class="d-flex gap-2">
+                    <form onsubmit="handleForms(event, '/api/admin/update_coin')" class="d-flex gap-2">
                         <input type="hidden" name="coin_id" value="{{ coin['coin_id'] }}">
                         <td><input type="checkbox" class="form-check-input coinCheckbox" value="{{ coin['coin_id'] }}"></td>
                         <td class="align-middle">{{ coin['coin_id'] }}</td>
@@ -112,7 +93,7 @@
                             <div class="d-flex gap-1">
                                 <button type="submit" class="btn btn-sm btn-success">Update</button>
                     </form>
-                                <form onsubmit="handleForms(event, '/admin/delete_coin')">
+                                <form onsubmit="handleForms(event, '/api/admin/delete_coin')">
                                     <input type="hidden" name="coin_id" value="{{ coin['coin_id'] }}">
                                     <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                                 </form>
@@ -123,7 +104,7 @@
 
                 <!-- New coin form -->
                 <tr>
-                    <form onsubmit="handleForms(event, '/admin/add_coin')" class="d-flex gap-2">
+                    <form onsubmit="handleForms(event, '/api/admin/add_coin')" class="d-flex gap-2">
                         <td></td>
                         <td></td>
                         <td><input type="text" name="coin_tag_id" class="form-control" placeholder="Tag ID" required></td>

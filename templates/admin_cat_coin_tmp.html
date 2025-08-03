@@ -2,31 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coin Categories</title>
     <link rel="stylesheet" href="/static/css/bootstrap.css">
     <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/common.js"></script>
     <script>
-        function handleForms(event, url) {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-            fetch(url, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    alert('Operation successful!');
-                    window.location.reload();
-                }
-            })
-            .catch(error => {
-                alert('An error occurred: ' + error);
-            });
-        }
-
         function toggleAllCheckboxes(source) {
             const checkboxes = document.querySelectorAll('.categoryCheckbox');
             checkboxes.forEach(cb => cb.checked = source.checked);
@@ -42,7 +23,7 @@
                 return;
             }
 
-            fetch('/bulk_add_coin_time_category', {
+            fetch('/api/admin/bulk_add_coin_time_category', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ ids: selectedIds, time_offset: timeOffset })
@@ -88,7 +69,7 @@
             <tbody>
                 {% for cat in categories %}
                 <tr>
-                    <form onsubmit="handleForms(event, '/admin/update_coin_category')" class="d-flex gap-2">
+                    <form onsubmit="handleForms(event, '/api/admin/update_coin_category')" class="d-flex gap-2">
                         <input type="hidden" name="category_id" value="{{ cat['coin_category_id'] }}">
                         <td><input type="checkbox" class="form-check-input categoryCheckbox" value="{{ cat['coin_category_id'] }}"></td>
                         <td class="align-middle">{{ cat['coin_category_id'] }}</td>
@@ -97,7 +78,7 @@
                             <div class="d-flex gap-1">
                                 <button type="submit" class="btn btn-sm btn-success">Update</button>
                     </form>
-                                <form onsubmit="handleForms(event, '/admin/delete_coin_category')">
+                                <form onsubmit="handleForms(event, '/api/admin/delete_coin_category')">
                                     <input type="hidden" name="category_id" value="{{ cat['coin_category_id'] }}">
                                     <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                                 </form>
@@ -108,7 +89,7 @@
 
                 <!-- New category form -->
                 <tr>
-                    <form onsubmit="handleForms(event, '/admin/add_coin_category')" class="d-flex gap-2">
+                    <form onsubmit="handleForms(event, '/api/admin/add_coin_category')" class="d-flex gap-2">
                         <td></td>
                         <td></td>
                         <td><input type="text" name="category_name" class="form-control" placeholder="Name" value="no_name" required></td>

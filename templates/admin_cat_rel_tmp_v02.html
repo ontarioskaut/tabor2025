@@ -6,8 +6,6 @@
     <link rel="stylesheet" href="/static/css/bootstrap.css">
     <script src="/static/js/bootstrap.js"></script>
     <script>
-        
-
         //warning this is not the normal handleForms as in other pages, this has event.target.form instead of just event.target
         function handleForms(event, url) {
             event.preventDefault();
@@ -60,7 +58,7 @@
                                         checked
                                     {% endif %}
                                 {% endfor %}
-                                onchange="handleForms(event, '/admin/toggle_user_cat_rel')">
+                                onchange="handleForms(event, '/api/admin/toggle_user_cat_rel')">
                         </form>
                     </td>
                     {% endfor %}
