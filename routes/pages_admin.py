@@ -220,3 +220,8 @@ def admin_announcements():
         displays=config.DISPLAYS,
         config=config,
     )
+
+
+@bp_admin_pages.route("/nfc_app", methods=["GET"])
+def nfc_app():
+    return render_template("nfc_app.html", config=config)

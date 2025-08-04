@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RFID Admin Scanner</title>
+  <link rel="stylesheet" href="/static/css/bootstrap.css">
+  <script src="/static/js/bootstrap.js"></script>
+  <style>
+    #log {
+      background-color: #f8f9fa;
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+<div class="container mt-4">
+  <h1>RFID Admin Scanner</h1>
+
+  <!-- MAIN MENU -->
+  <div id="mainMenu">
+    <button class="btn btn-primary mt-3" onclick="startScan()">Scan NFC Tag</button>
+    <button class="btn btn-secondary mt-3" onclick="startBatchActivate()">Batch Activate Coins</button>
+    <button class="btn btn-warning mt-3" onclick="startBatchSetValue()">Batch Set Coin Value</button>
+  </div>
+
+  <!-- SCAN SCREEN -->
+  <div id="scanScreen" class="hidden">
+    <h3 id="scanTitle">Scan NFC Tag</h3>
+    <p id="tagUID">Waiting for tag...</p>
+    <div id="scanActions"></div>
+    <button class="btn btn-outline-secondary mt-3" onclick="goHome()">Exit</button>
+  </div>
+
+  <!-- LOG -->
+  <div class="mt-4">
+    <h3>Log</h3>
+    <div id="log">Ready.</div>
+  </div>
+</div>
+
+<script>
+const logElement = document.getElementById("log");
+function log(message) {
+  logElement.textContent += "\n" + message;
+  logElement.scrollTop = logElement.scrollHeight;
+}
+
+// State
+let batchMode = null; // "activate" | "setValue"
+let batchValue = null;
+
+function goHome() {
+  batchMode = null;
+  batchValue = null;
+  document.getElementById("mainMenu").classList.remove("hidden");
+  document.getElementById("scanScreen").classList.add("hidden");
+  document.getElementById("scanActions").innerHTML = "";
+  document.getElementById("tagUID").textContent = "Waiting for tag...";
+}
+
+// Start normal scan
+function startScan() {
+  document.getElementById("mainMenu").classList.add("hidden");
+  document.getElementById("scanScreen").classList.remove("hidden");
+  scanTag(handleTag);
+}
+
+// Batch activate
+function startBatchActivate() {
+  batchMode = "activate";
+  document.getElementById("mainMenu").classList.add("hidden");
+  document.getElementById("scanScreen").classList.remove("hidden");
+  document.getElementById("scanTitle").textContent = "Batch Activate Coins";
+  scanTag(handleTag);
+}
+
+// Batch set value
+async function startBatchSetValue() {
+  const val = prompt("Enter coin value:");
+  if (val === null) return;
+  batchValue = parseInt(val, 10);
+  if (isNaN(batchValue)) { alert("Invalid value"); return; }
+  batchMode = "setValue";
+  document.getElementById("mainMenu").classList.add("hidden");
+  document.getElementById("scanScreen").classList.remove("hidden");
+  document.getElementById("scanTitle").textContent = `Batch Set Value = ${batchValue}`;
+  scanTag(handleTag);
+}
+
+// Core scanning function
+async function scanTag(callback) {
+  try {
+    const ndef = new NDEFReader();
+    await ndef.scan();
+    log("> Scan started");
+    ndef.addEventListener("reading", ({ serialNumber }) => {
+      const uid = serialNumber.toUpperCase();
+      log(`Tag UID: ${uid}`);
+      document.getElementById("tagUID").textContent = `UID: ${uid}`;
+      callback(uid);
+    });
+  } catch (err) {
+    log("Error: " + err);
+  }
+}
+
+// Handle scanned tag
+async function handleTag(uid) {
+  if (batchMode === "activate") {
+    await fetch(`/api/nodes/activate_coin?coin_tag_id=${uid}`);
+    log(`Activated coin ${uid}`);
+    return;
+  }
+  if (batchMode === "setValue") {
+    await fetch(`/api/nodes/set_coinval?coin_tag_id=${uid}&coin_value=${batchValue}&category=1`);
+    log(`Set coin ${uid} value=${batchValue}`);
+    return;
+  }
+
+  // Normal scan - check if user/coin/none
+  const res = await fetch(`/api/nodes/get_identification?user_tag_id=${uid}`);
+  const data = await res.json();
+
+  const actions = document.getElementById("scanActions");
+  actions.innerHTML = "";
+
+  if (data.error) {
+    // None found: allow create user/coin
+    actions.innerHTML = `
+      <button class="btn btn-success mt-2" onclick="createUser('${uid}')">Create User Tag</button>
+      <button class="btn btn-info mt-2" onclick="createCoin('${uid}')">Create Coin Tag</button>
+    `;
+  } else if (data.name) {
+    // It's user
+    actions.innerHTML = `
+      <p>Name: ${data.name}</p>
+      <p>Time: ${data.user_time}s</p>
+      <button class="btn btn-danger mt-2" onclick="deleteUser('${uid}')">Delete User</button>
+      <button class="btn btn-warning mt-2" onclick="changeTime('${uid}')">Change Time</button>
+      <button class="btn btn-secondary mt-2" onclick="changeUserInfo('${uid}')">Change User Info</button>
+    `;
+  } else {
+    // It's coin (no name returned)
+    actions.innerHTML = `
+      <button class="btn btn-danger mt-2" onclick="removeCoin('${uid}')">Remove Coin</button>
+      <button class="btn btn-warning mt-2" onclick="editCoinInfo('${uid}')">Edit Coin Info</button>
+    `;
+  }
+}
+
+// Dummy implementations - fill API calls as needed
+function createUser(uid){ log(`Create user tag ${uid}`); }
+function createCoin(uid){ log(`Create coin tag ${uid}`); }
+function deleteUser(uid){ log(`Delete user ${uid}`); }
+function changeTime(uid){ log(`Change time for ${uid}`); }
+function changeUserInfo(uid){ log(`Change info for ${uid}`); }
+function removeCoin(uid){ log(`Remove coin ${uid}`); }
+function editCoinInfo(uid){ log(`Edit coin info for ${uid}`); }
+
+</script>
+</body>
+</html>
+

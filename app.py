@@ -55,4 +55,4 @@ if __name__ == "__main__":
     print("start")
     create_tables(config.DATABASE_NAME)
     start_background_thread()
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", debug=True, ssl_context=config.SSL_CONTEXT)
