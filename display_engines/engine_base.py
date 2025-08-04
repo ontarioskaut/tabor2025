@@ -5,6 +5,16 @@ from math import floor
 from PIL import Image, ImageDraw, ImageFont
 
 
+def get_text_width(draw, text, font):
+    if hasattr(draw, "textbbox"):  # Pillow >=8.0
+        bbox = draw.textbbox((0, 0), text, font=font)
+        return bbox[2] - bbox[0]
+    elif hasattr(draw, "textsize"):  # Pillow <8.0
+        return draw.textsize(text, font=font)[0]
+    else:
+        raise RuntimeError("Cannot measure text width: unsupported Pillow version")
+
+
 class EngineBase:
     """
     Base engine for all kinds of displays
@@ -29,14 +39,29 @@ class EngineBase:
         """
         Return base64 encoded display data frame of current buffer state.
         """
+        bw_image = self.display_buffer.convert("1")
+        width, height = bw_image.size
+        pixels = bw_image.load()
 
-        if self.color:
-            raw_data = self.display_buffer.tobytes()  # RGB triplets
-        else:
-            bw_image = self.display_buffer.convert("1")
-            raw_data = bw_image.tobytes()
+        packed_bytes = bytearray()
 
-        encoded = base64.b64encode(raw_data).decode("ascii")
+        for y in range(height):
+            byte_val = 0
+            bit_count = 0
+            for x in range(width):
+                pixel_on = pixels[x, y] == 255
+                if pixel_on:
+                    byte_val |= 1 << bit_count
+                bit_count += 1
+                if bit_count == 8:
+                    packed_bytes.append(byte_val)
+                    byte_val = 0
+                    bit_count = 0
+
+            if bit_count > 0:
+                packed_bytes.append(byte_val)
+
+        encoded = base64.b64encode(packed_bytes).decode("ascii")
         return encoded
 
     def get_bitmap(self, path=None):
@@ -71,7 +96,6 @@ class EngineBase:
         formatted_times = []
         for entry in time_data:
             for label, total_seconds in entry.items():
-                # If total_seconds is 0, mark as DEAD
                 if total_seconds == 0:
                     formatted_times.append((label, "DEAD"))
                     continue
@@ -116,14 +140,13 @@ class EngineBase:
                 label = data[0]
                 dead_text = " DEAD"
 
-                label_width = draw.textlength(label, font=bold_font)
-                dead_width = draw.textlength(dead_text, font=regular_font)
+                label_width = get_text_width(draw, label, bold_font)
+                dead_width = get_text_width(draw, dead_text, regular_font)
                 total_width = label_width + 2 + dead_width
 
                 x = col_width * (idx % 2) + (col_width - total_width) // 2 + 2
                 y = row_height * (idx // 2) + (row_height - bold_font.size) // 2
 
-                # Draw label
                 draw.text(
                     (x, y),
                     label,
@@ -132,7 +155,6 @@ class EngineBase:
                 )
                 x += label_width + 2
 
-                # Draw DEAD
                 draw.text(
                     (x, y),
                     dead_text,
@@ -143,13 +165,13 @@ class EngineBase:
             else:
                 label, day_char, hh, mm, ss = data
 
-                label_width = draw.textlength(label, font=bold_font)
+                label_width = get_text_width(draw, label, bold_font)
                 space_width = 1
-                day_width = draw.textlength(day_char, font=regular_font)
+                day_width = get_text_width(draw, day_char, regular_font)
                 colon_width = 3
-                hh_width = draw.textlength(hh, font=regular_font)
-                mm_width = draw.textlength(mm, font=regular_font)
-                ss_width = draw.textlength(ss, font=regular_font)
+                hh_width = get_text_width(draw, hh, regular_font)
+                mm_width = get_text_width(draw, mm, regular_font)
+                ss_width = get_text_width(draw, ss, regular_font)
 
                 total_width = (
                     label_width
@@ -203,6 +225,7 @@ class EngineBase:
                     font=regular_font,
                 )
                 x += colon_width - 1
+
                 draw.text(
                     (x, y),
                     mm,
@@ -217,6 +240,7 @@ class EngineBase:
                     font=regular_font,
                 )
                 x += colon_width - 1
+
                 draw.text(
                     (x, y),
                     ss,
@@ -231,23 +255,17 @@ class EngineBase:
 
         from PIL import Image, ImageOps
 
-        # Decode base64 to image
         img = Image.open(BytesIO(base64.b64decode(base64_data)))
-
-        # Ensure mode matches target (convert to "1" or "RGB")
         target_mode = "RGB" if self.color else "1"
         img = img.convert(target_mode)
 
-        # Invert colors (white <-> black)
         if target_mode == "RGB":
             img = ImageOps.invert(img)
         else:
-            # For 1-bit images, invert manually: convert to L, invert, then back
             img = img.convert("L")
             img = ImageOps.invert(img)
             img = img.point(lambda x: 255 if x > 128 else 0, "1")
 
-        # Paste inverted image into display buffer
         self.display_buffer.paste(img)
 
     # --------------------------------------------------------
@@ -255,9 +273,6 @@ class EngineBase:
     # --------------------------------------------------------
 
     def clear(self):
-        """
-        Clear the display buffer.
-        """
         draw = ImageDraw.Draw(self.display_buffer)
         fill_color = 0 if not self.color else (0, 0, 0)
         draw.rectangle([0, 0, *self.resolution], fill=fill_color)

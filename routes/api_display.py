@@ -119,7 +119,7 @@ def get_display_output(display_name):
             abort(404, description="Display frame not available")
         with open(dis_path, "r") as f:
             base64_data = f.read().strip()
-        return jsonify({"display": display_name, "frame_base64": base64_data})
+        return base64_data
 
     abort(400, description="Invalid format. Use 'png' or 'base64'.")
 
