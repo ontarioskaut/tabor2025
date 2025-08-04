@@ -47,6 +47,15 @@ def addition_of_time(user_tag_id, time_to_change, mode: str = "+"):
         return jsonify({"error": "User not found"}), 404
 
 
+def is_user_tag(tag_id):
+    connection = sqlite3.connect(config.DATABASE_NAME)
+    cursor = connection.cursor()
+    cursor.execute("SELECT 1 FROM users WHERE user_tag_id = ?", (tag_id,))
+    result = cursor.fetchone()
+    connection.close()
+    return result is not None
+
+
 @bp_nodes.route("/search_tags", methods=["GET"])
 def search_tags():
     tag_id = request.args.get("tag_id")
@@ -198,11 +207,13 @@ def change_time():
 
 @bp_nodes.route("/add_coinval", methods=["GET"])
 def add_coinval():
-    # it would be prettier to use "addition of time" again, but this way, i don't have to open database two times
     coin_tag_id = request.args.get("coin_tag_id")
     user_tag_id = request.args.get("user_tag_id")
     if not coin_tag_id or not user_tag_id:
         return jsonify({"error": "coin_tag_id and user_tag_id are required"}), 400
+
+    if is_user_tag(coin_tag_id):
+        return jsonify({"error": "Provided tag belongs to a user, not a coin"}), 400
 
     connection_db = sqlite3.connect(config.DATABASE_NAME)
     cursor_db = connection_db.cursor()
@@ -252,10 +263,10 @@ def set_coinval():
     coin_tag_id = request.args.get("coin_tag_id")
     coin_value = request.args.get("coin_value")
     if not coin_tag_id or not coin_value:
-        return (
-            jsonify({"error": "coin_tag_id is required"}),
-            400,
-        )
+        return jsonify({"error": "coin_tag_id is required"}), 400
+
+    if is_user_tag(coin_tag_id):
+        return jsonify({"error": "Provided tag belongs to a user, not a coin"}), 400
 
     try:
         coin_value = int(coin_value)
@@ -275,7 +286,7 @@ def set_coinval():
             (coin_value, coin_tag_id),
         )
     else:
-        insert_coin(cursor_db, coin_tag_id, coin_value)
+        insert_coin(cursor_db, coin_tag_id, coin_value, 0)
 
     connection_db.commit()
     connection_db.close()
@@ -289,6 +300,9 @@ def activate_coin():
 
     if coin_tag_id is None:
         return jsonify({"error": "coin tag is required"})
+
+    if is_user_tag(coin_tag_id):
+        return jsonify({"error": "Provided tag belongs to a user, not a coin"}), 400
 
     connection_db = sqlite3.connect(config.DATABASE_NAME)
     cursor_db = connection_db.cursor()
