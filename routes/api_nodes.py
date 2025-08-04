@@ -47,6 +47,89 @@ def addition_of_time(user_tag_id, time_to_change, mode: str = "+"):
         return jsonify({"error": "User not found"}), 404
 
 
+@bp_nodes.route("/search_tags", methods=["GET"])
+def search_tags():
+    tag_id = request.args.get("tag_id")
+
+    if not tag_id:
+        return jsonify({"error": "tag_id is required"}), 400
+
+    connection_db = sqlite3.connect(config.DATABASE_NAME)
+    cursor_db = connection_db.cursor()
+
+    # --- Check users ---
+    cursor_db.execute(
+        """
+        SELECT id, user_name, user_acro, user_time_offset, user_game_start_timestamp
+        FROM users
+        WHERE user_tag_id = ?
+        """,
+        (tag_id,),
+    )
+    user = cursor_db.fetchone()
+
+    if user:
+        usr_id, user_name, user_acro, offset, start_ts = user
+        remaining_time = count_remaining_time(start_ts, offset)
+
+        connection_db.close()
+        return jsonify(
+            {
+                "id": usr_id,
+                "type": "user",
+                "user_name": user_name,
+                "remaining_time": remaining_time,
+                "user_acro": user_acro,
+                "coin_value": None,
+                "active": None,
+                "coin_category_name": None,
+            }
+        )
+
+    # --- Check coins ---
+    cursor_db.execute(
+        """
+        SELECT id, coin_value, coin_category, is_active
+        FROM coins
+        WHERE coin_tag_id = ?
+        """,
+        (tag_id,),
+    )
+    coin = cursor_db.fetchone()
+
+    if coin:
+        coin_id, coin_value, category_id, is_active = coin
+
+        # Lookup category name
+        cursor_db.execute(
+            """
+            SELECT coin_category_name
+            FROM coin_category
+            WHERE coin_category_id = ?
+            """,
+            (category_id,),
+        )
+        category = cursor_db.fetchone()
+        category_name = category[0] if category else "no_category"
+
+        connection_db.close()
+        return jsonify(
+            {
+                "id": coin_id,
+                "type": "coin",
+                "user_name": None,
+                "remaining_time": None,
+                "user_acro": None,
+                "coin_value": coin_value,
+                "active": is_active,
+                "coin_category_name": category_name,
+            }
+        )
+
+    connection_db.close()
+    return jsonify({"error": "No matching user or coin found"}), 404
+
+
 @bp_nodes.route("/get_identification", methods=["GET"])
 def get_identification():
     user_tag_id = request.args.get("user_tag_id")
@@ -168,18 +251,16 @@ def add_coinval():
 def set_coinval():
     coin_tag_id = request.args.get("coin_tag_id")
     coin_value = request.args.get("coin_value")
-    category = request.args.get("category")
-    if not coin_tag_id or not coin_value or not category:
+    if not coin_tag_id or not coin_value:
         return (
-            jsonify({"error": "coin_tag_id and coin_value and category are required"}),
+            jsonify({"error": "coin_tag_id is required"}),
             400,
         )
 
     try:
         coin_value = int(coin_value)
-        category = int(category)
     except:
-        return jsonify({"error": "coin_value and category must be integers"}), 400
+        return jsonify({"error": "coin_value must be integer"}), 400
 
     connection_db = sqlite3.connect(config.DATABASE_NAME)
     cursor_db = connection_db.cursor()
@@ -190,11 +271,11 @@ def set_coinval():
     coin = cursor_db.fetchone()
     if coin is not None:  # coin_tag_id is already in database
         cursor_db.execute(
-            "UPDATE coins SET coin_value = ?, coin_category = ? WHERE coin_tag_id = ?",
-            (coin_value, category, coin_tag_id),
+            "UPDATE coins SET coin_value = ? WHERE coin_tag_id = ?",
+            (coin_value, coin_tag_id),
         )
     else:
-        insert_coin(cursor_db, coin_tag_id, coin_value, category)
+        insert_coin(cursor_db, coin_tag_id, coin_value)
 
     connection_db.commit()
     connection_db.close()

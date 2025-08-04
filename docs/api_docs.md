@@ -2,6 +2,27 @@
 
 ## RFID nodes related API (`/api/nodes`):
 
+- **Get tag info from UID (search between both coins and users) (`search_tags` [GET])**
+  - **Input:** `tag_id=string`
+  - **Output:**
+    ```json
+    {
+      "id": 1,
+      "active": null,
+      "coin_category_name": null,
+      "coin_value": null,
+      "remaining_time": 387198,
+      "type": "user",
+      "user_acro": "B",
+      "user_name": "Luboš"
+    }
+    ```
+  - **Errors:**
+    ```json
+    {"error": "No matching user or coin found"}
+    ```
+---
+
 - **Get basic user info from tag UID (`get_identification` [GET]):**
   - **Input:** `user_tag_id=string`
   - **Output:** 
@@ -87,10 +108,9 @@
 
 ---
 
-- **Set coin value and category (`set_coinval` [GET]):**
+- **Set coin value (`set_coinval` [GET]):**
   - **Input:**
     - `coin_tag_id=string`
-    - `coin_value=int`
     - `category=int`
   - **Output:**
     ```json
@@ -98,8 +118,8 @@
     ```
   - **Errors:**
     ```json
-    { "error": "coin_tag_id and coin_value and category are required" }
-    { "error": "coin_value and category must be integers" }
+    { "error": "coin_tag_id is required" }
+    { "error": "coin_value must be integer" }
     ```
 
 ---
