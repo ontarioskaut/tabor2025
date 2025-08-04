@@ -323,6 +323,36 @@ def activate_coin():
     return jsonify({"status": "success"})
 
 
+@bp_nodes.route("/deactivate_coin", methods=["GET"])
+def deactivate_coin():
+    coin_tag_id = request.args.get("coin_tag_id")
+
+    if coin_tag_id is None:
+        return jsonify({"error": "coin tag is required"})
+
+    if is_user_tag(coin_tag_id):
+        return jsonify({"error": "Provided tag belongs to a user, not a coin"}), 400
+
+    connection_db = sqlite3.connect(config.DATABASE_NAME)
+    cursor_db = connection_db.cursor()
+
+    cursor_db.execute(
+        "SELECT coin_tag_id FROM coins WHERE coin_tag_id = ?", (coin_tag_id,)
+    )
+    coin = cursor_db.fetchone()
+    if coin is None:
+        return jsonify({"error": "Provided tag does not exist"}), 400
+
+    cursor_db.execute(
+        "UPDATE coins SET is_active = 0 WHERE coin_tag_id = ?", (coin_tag_id,)
+    )
+
+    connection_db.commit()
+    connection_db.close()
+
+    return jsonify({"status": "success"})
+
+
 @bp_nodes.route("/init_user_tag", methods=["GET"])
 def init_user_tag():
     user_tag_id = request.args.get("user_tag_id")

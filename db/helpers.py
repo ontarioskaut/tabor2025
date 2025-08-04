@@ -21,7 +21,7 @@ def insert_coin(
     value: int,
     category: int,
     last_used="1970-01-01 00:00:00",
-    is_active=0,
+    is_active=1,
 ):
     cur.execute("SELECT MAX(coin_id) FROM coins")
     new_id = cur.fetchone()[0]
