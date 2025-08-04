@@ -60,7 +60,7 @@ def search_tags():
     # --- Check users ---
     cursor_db.execute(
         """
-        SELECT id, user_name, user_acro, user_time_offset, user_game_start_timestamp
+        SELECT user_id, user_name, user_acro, user_time_offset, user_game_start_timestamp
         FROM users
         WHERE user_tag_id = ?
         """,
@@ -89,7 +89,7 @@ def search_tags():
     # --- Check coins ---
     cursor_db.execute(
         """
-        SELECT id, coin_value, coin_category, is_active
+        SELECT coin_id, coin_value, coin_category, is_active
         FROM coins
         WHERE coin_tag_id = ?
         """,
