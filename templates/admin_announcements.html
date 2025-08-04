@@ -210,7 +210,7 @@ function applyText() {
     const font = document.getElementById("fontSelect").value;
     const x = parseInt(document.getElementById("textX").value, 10) || 0;
     const y = parseInt(document.getElementById("textY").value, 10) || 0;
-    const inverse = document.getElementById("inverseText").checked;
+    const inverse = false;
 
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = resolution[0];
