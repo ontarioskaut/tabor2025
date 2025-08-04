@@ -10,6 +10,7 @@ class Engine(EngineBase):
     def __init__(self, config):
         super().__init__(config)
         self.panels = 4
+        self.day_digits = 1
 
     def draw_time(self, time_data):
         """

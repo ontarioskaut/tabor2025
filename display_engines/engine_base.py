@@ -25,7 +25,7 @@ class EngineBase:
         self.resolution = config["resolution"]  # (width, height)
         self.color = config["color"]
         self.fit_times = config["fit_times"]
-
+        self.day_digits = 1
         width, height = self.resolution
 
         mode = "RGB" if self.color else "1"
@@ -107,10 +107,14 @@ class EngineBase:
                 minutes = floor((seconds % 3600) / 60)
                 secs = seconds % 60
 
-                day_char = str(days) if days <= 9 else "#"
+                day_chars = (
+                    f"{days:0{self.day_digits}}"
+                    if days < 10**self.day_digits
+                    else "#" * self.day_digits
+                )
 
                 formatted_times.append(
-                    (label, day_char, f"{hours:02}", f"{minutes:02}", f"{secs:02}")
+                    (label, day_chars, f"{hours:02}", f"{minutes:02}", f"{secs:02}")
                 )
 
         try:
