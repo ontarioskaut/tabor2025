@@ -251,7 +251,7 @@ def add_coinval():
         connection_db.close()
 
         time = count_remaining_time(user[1], new_offset)
-        return jsonify({"status": "success", "user_time": time})
+        return jsonify({"status": "success", "user_time": time, "coin_value": coin[0]})
 
     else:
         connection_db.close()

@@ -97,7 +97,7 @@
     - `user_tag_id=string`
   - **Output:**
     ```json
-    { "status": "success", "user_time": int }
+    { "status": "success", "user_time": int, "coin_value": int}
     ```
   - **Errors:**
     ```json
