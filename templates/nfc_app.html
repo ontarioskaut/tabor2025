@@ -2,489 +2,554 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFID Admin Scanner</title>
-    <link rel="stylesheet" href="/static/css/bootstrap.css">
-    <script src="/static/js/bootstrap.js"></script>
-    <style>
-        body, html {
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-        }
-        .content {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          padding-bottom: 200px;
-        }
-        #navbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: #f8f9fa;
-          padding: 10px;
-          border-bottom: 1px solid #ccc;
-        }
-        #mainMenu.centered,
-        #scanScreen.centered,
-        #payTerminalScreen.centered {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-        }
-        .btn-block {
-          width: 250px;
-          margin: 10px 0;
-        }
-        #waitingIcon {
-          font-size: 50px;
-          margin-bottom: 20px;
-        }
-        #log-container {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: white;
-          border-top: 1px solid #ccc;
-          height: 200px;
-          display: flex;
-          flex-direction: column;
-        }
-        #log-container h3 {
-          margin: 0;
-          padding: 5px 10px;
-          background: #f8f9fa;
-          border-bottom: 1px solid #ccc;
-        }
-        #log {
-          flex: 1;
-          overflow-y: auto;
-          padding: 10px;
-          font-family: monospace;
-          white-space: pre-wrap;
-          background-color: #f8f9fa;
-        }
-    
-        .time-inputs {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 15px;
-        }
-        .time-inputs input {
-          width: 60px;
-          text-align: center;
-          font-size: 1.2rem;
-        }
-        .mode-buttons {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 20px;
-        }
-        .hidden { display: none !important; }
-        
-        .time-inputs {
-      display: flex;
-      align-items: center;   /* Vertically align items (inputs and :) */
-      gap: 5px;              /* Small space between elements */
-    }
-    
-    .time-inputs input {
-      width: 60px;
-      text-align: center;
-      font-size: 1.2rem;
-    }
-    
-    .time-separator {
-      font-size: 1.5rem;
-      font-weight: bold;
-      line-height: 1;        /* Prevent vertical stretching */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    </style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>RFID Admin Scanner</title>
+	<link rel="stylesheet" href="/static/css/bootstrap.css">
+	<script src="/static/js/bootstrap.js"></script>
+	<style>
+	body,
+	html {
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		padding-bottom: 200px;
+	}
+
+	#navbar {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		background: #f8f9fa;
+		padding: 10px;
+		border-bottom: 1px solid #ccc;
+	}
+
+	#mainMenu.centered,
+	#scanScreen.centered,
+	#payTerminalScreen.centered {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.btn-block {
+		width: 250px;
+		margin: 10px 0;
+	}
+
+	#log-container {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		background: white;
+		border-top: 1px solid #ccc;
+		height: 200px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	#log-container h3 {
+		margin: 0;
+		padding: 5px 10px;
+		background: #f8f9fa;
+		border-bottom: 1px solid #ccc;
+	}
+
+	#log {
+		flex: 1;
+		overflow-y: auto;
+		padding: 10px;
+		font-family: monospace;
+		white-space: pre-wrap;
+		background-color: #f8f9fa;
+	}
+
+	.time-inputs {
+		display: flex;
+		gap: 10px;
+		margin-bottom: 15px;
+	}
+
+	.time-inputs input {
+		width: 60px;
+		text-align: center;
+		font-size: 1.2rem;
+	}
+
+	.mode-buttons {
+		display: flex;
+		gap: 10px;
+		margin-bottom: 20px;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	.time-inputs {
+		display: flex;
+		align-items: center;
+		/* Vertically align items (inputs and :) */
+		gap: 5px;
+		/* Small space between elements */
+	}
+
+	.time-inputs input {
+		width: 60px;
+		text-align: center;
+		font-size: 1.2rem;
+	}
+
+	.time-separator {
+		font-size: 1.5rem;
+		font-weight: bold;
+		line-height: 1;
+		/* Prevent vertical stretching */
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.centered {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+	}
+	</style>
 </head>
 
 <body>
-    <div id="navbar">
-        <span id="modeLabel">Mode: Main Menu</span>
-        <button class="btn btn-outline-secondary btn-sm" onclick="goHome()">Main Menu</button>
-    </div>
+	<div id="navbar">
+		<span id="modeLabel">Mode: Main Menu</span>
+		<button class="btn btn-outline-secondary btn-sm" onclick="goHome()">Main Menu</button>
+	</div>
+	<div class="container content">
+		<!-- MAIN MENU -->
+		<div id="mainMenu" class="centered">
+			<button class="btn btn-primary btn-lg btn-block" onclick="startScan()">SCAN</button>
+			<button class="btn btn-secondary btn-block" onclick="startBatchActivate()">Batch Coin Activate</button>
+			<button class="btn btn-secondary btn-block" onclick="startBatchDeactivate()">Batch Coin Deactivate</button>
+			<button class="btn btn-warning btn-block" onclick="startBatchSetValue()">Batch Set Coin Value</button>
+			<button class="btn btn-info btn-block" onclick="startPayTerminal()">Pay Terminal</button>
+		</div>
+		<!-- SCAN SCREEN -->
+		<div id="scanScreen" class="hidden centered">
+			<div id="waitingState" class="centered">
+				<div id="waitingIcon">
+					<img class="mb-3" src="/static/others/rfid_icon.png" alt="RFID Icon" width="80" height="80" style="object-fit: contain;">
+				</div>
+				<p id="tagUID">Waiting for tag...</p>
+			</div>
+			<div id="scanActions" class="hidden"></div>
+		</div>
+		<!-- PAY TERMINAL SCREEN -->
+		<div id="payTerminalScreen" class="hidden centered">
+			<h3 class="mb-3">Pay Terminal</h3>
+			<div class="time-inputs">
+				<input type="number" id="daysInput" placeholder="DD" min="0" value="0">
+				<span class="time-separator">:</span>
+				<input type="number" id="hoursInput" placeholder="HH" min="0" max="23" value="0">
+				<span class="time-separator">:</span>
+				<input type="number" id="minutesInput" placeholder="MM" min="0" max="59" value="0">
+				<span class="time-separator">:</span>
+				<input type="number" id="secondsInput" placeholder="SS" min="0" max="59" value="0">
+			</div>
+			<div class="mode-buttons">
+				<button class="btn btn-success" onclick="setPayMode('+')">Add</button>
+				<button class="btn btn-danger" onclick="setPayMode('-')">Subtract</button>
+			</div>
+			<p id="payInfo">Select time and mode, then scan a user tag.</p>
+		</div>
+	</div>
+	<!-- LOG -->
+	<div id="log-container">
+		<h3>Log</h3>
+		<div id="log">Ready.</div>
+	</div>
+	<script>
+	const logElement = document.getElementById('log');
+	const modeLabel = document.getElementById('modeLabel');
+	let scanningCoins = false;
+	let coinScanCooldown = false;
+	let currentUserId = null;
+	let currentUserUID = null;
+	let payMode = null;
+	let payCooldown = false;
+	// --- Logging ---
+	function log(message) {
+		logElement.textContent += '\n' + message;
+		logElement.scrollTop = logElement.scrollHeight;
+	}
+	// --- API helpers ---
+	async function apiGet(url) {
+		log(`GET: ${url}`);
+		const res = await fetch(url);
+		const data = await res.json();
+		log(`Response: ${JSON.stringify(data)}`);
+		return data;
+	}
+	async function apiPost(url, body = {}) {
+		log(`POST (form): ${url}`);
+		const formBody = new URLSearchParams(body).toString();
+		const res = await fetch(url, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body: formBody
+		});
+		const data = await res.json();
+		log(`Response: ${JSON.stringify(data)}`);
+		return data;
+	}
+	// --- Format time ---
+	function formatSeconds(sec) {
+		const days = Math.floor(sec / 86400);
+		const hours = Math.floor((sec % 86400) / 3600);
+		const minutes = Math.floor((sec % 3600) / 60);
+		const seconds = sec % 60;
+		return `${String(days).padStart(2,'0')}:${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+	}
+	// --- Navigation ---
+	function goHome() {
+		batchMode = null;
+		batchValue = null;
+		document.getElementById('mainMenu').classList.remove('hidden');
+		document.getElementById('scanScreen').classList.add('hidden');
+		document.getElementById('scanActions').classList.add('hidden');
+		document.getElementById('waitingState').classList.remove('hidden');
+		document.getElementById('tagUID').textContent = 'Waiting for tag...';
+		document.getElementById('payTerminalScreen').classList.add('hidden'); // FIX: Hide pay terminal
+		modeLabel.textContent = 'Mode: Main Menu';
+	}
+	// --- NFC Scan ---
+	async function scanTag(callback, allowCoins = false) {
+		try {
+			const ndef = new NDEFReader();
+			await ndef.scan();
+			log('> Scan started');
+			ndef.addEventListener('reading', ({
+				serialNumber
+			}) => {
+				const uid = serialNumber.toUpperCase();
+				log(`Tag UID: ${uid}`);
+				document.getElementById('tagUID').textContent = `UID: ${uid}`;
+				// If we're in coin scanning mode, skip callback for coins
+				if(scanningCoins && allowCoins) {
+					handleCoinScan(uid);
+				} else if(!scanningCoins) {
+					callback(uid);
+				}
+			});
+		} catch (err) {
+			log('Error: ' + err);
+		}
+	}
 
-    <div class="container content">
+	function enterScanMode(modeName) {
+		document.getElementById('mainMenu').classList.add('hidden');
+		document.getElementById('scanScreen').classList.remove('hidden');
+		document.getElementById('scanActions').classList.add('hidden');
+		document.getElementById('waitingState').classList.remove('hidden');
+		document.getElementById('tagUID').textContent = 'Waiting for tag...';
+		modeLabel.textContent = `Mode: ${modeName}`;
+	}
+	// --- Modes ---
+	let batchMode = null;
+	let batchValue = null;
 
-        <!-- MAIN MENU -->
-        <div id="mainMenu" class="centered">
-            <button class="btn btn-primary btn-lg btn-block" onclick="startScan()">SCAN</button>
-            <button class="btn btn-secondary btn-block" onclick="startBatchActivate()">Batch Coin Activate</button>
-            <button class="btn btn-secondary btn-block" onclick="startBatchDeactivate()">Batch Coin Deactivate</button>
-            <button class="btn btn-warning btn-block" onclick="startBatchSetValue()">Batch Set Coin Value</button>
-            <button class="btn btn-info btn-block" onclick="startPayTerminal()">Pay Terminal</button>
-        </div>
+	function startScan() {
+		enterScanMode('Scan NFC Tag');
+		scanTag(handleTag);
+	}
 
-        <!-- SCAN SCREEN -->
-        <div id="scanScreen" class="hidden centered">
-            <div id="waitingState">
-                <div id="waitingIcon">📶</div>
-                <p id="tagUID">Waiting for tag...</p>
-            </div>
-            <div id="scanActions" class="hidden"></div>
-        </div>
+	function startBatchActivate() {
+		batchMode = 'activate';
+		enterScanMode('Batch Activate Coins');
+		scanTag(handleTag);
+	}
 
-        <!-- PAY TERMINAL SCREEN -->
-        <div id="payTerminalScreen" class="hidden centered">
-            <h3 class="mb-3">Pay Terminal</h3>
-            <div class="time-inputs">
-                <input type="number" id="daysInput" placeholder="DD" min="0" value="0">
-                <span class="time-separator">:</span>
-                <input type="number" id="hoursInput" placeholder="HH" min="0" max="23" value="0">
-                <span class="time-separator">:</span>
-                <input type="number" id="minutesInput" placeholder="MM" min="0" max="59" value="0">
-                <span class="time-separator">:</span>
-                <input type="number" id="secondsInput" placeholder="SS" min="0" max="59" value="0">
-            </div>
+	function startBatchDeactivate() {
+		batchMode = 'deactivate';
+		enterScanMode('Batch Deactivate Coins');
+		scanTag(handleTag);
+	}
+	async function startBatchSetValue() {
+		const val = prompt('Enter coin value:');
+		if(val === null) return;
+		batchValue = parseInt(val, 10);
+		if(isNaN(batchValue)) {
+			alert('Invalid value');
+			return;
+		}
+		batchMode = 'setValue';
+		enterScanMode(`Batch Set Value = ${batchValue}`);
+		scanTag(handleTag);
+	}
 
-            <div class="mode-buttons">
-                <button class="btn btn-success" onclick="setPayMode('+')">Add</button>
-                <button class="btn btn-danger" onclick="setPayMode('-')">Subtract</button>
-            </div>
-            <p id="payInfo">Select time and mode, then scan a user tag.</p>
-        </div>
+	function startPayTerminal() {
+		document.getElementById('mainMenu').classList.add('hidden');
+		document.getElementById('scanScreen').classList.add('hidden');
+		document.getElementById('payTerminalScreen').classList.remove('hidden');
+		modeLabel.textContent = 'Mode: Pay Terminal';
+		document.getElementById('payInfo').textContent = 'Select time and mode, then scan a user tag.';
+		scanTag(handlePayTag);
+	}
 
-    </div>
+	function setPayMode(mode) {
+		payMode = mode;
+		document.getElementById('payInfo').textContent = `Mode: "${mode}" — Scan a user tag to apply.`;
+	}
+	async function handlePayTag(uid) {
+		if(payCooldown) {
+			log('Cooldown active, ignoring repeated scan.');
+			return;
+		}
+		if(!payMode) {
+			document.getElementById('payInfo').textContent = 'Select + or - before scanning!';
+			return;
+		}
+		const days = parseInt(document.getElementById('daysInput').value) || 0;
+		const hours = parseInt(document.getElementById('hoursInput').value) || 0;
+		const minutes = parseInt(document.getElementById('minutesInput').value) || 0;
+		const seconds = parseInt(document.getElementById('secondsInput').value) || 0;
+		const totalSeconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
+		if(totalSeconds === 0) {
+			document.getElementById('payInfo').textContent = 'Time cannot be 0!';
+			return;
+		}
+		let paym = payMode;
+		if(paym == "+") {
+			paym = "";
+		}
+		const endpoint = `/api/nodes/change_time?input_time=${totalSeconds}${paym}&user_tag_id=${uid}`;
+		data = await apiGet(endpoint);
+		if(data.status == "success") {
+			document.getElementById('payInfo').innerHTML = `Applied ${payMode}${totalSeconds}s to ${uid}<br>Current ballance: <b>${formatSeconds(data.user_time)}</b>`;
+		} else {
+			document.getElementById('payInfo').textContent = `Error applying ${payMode}${totalSeconds}s to ${uid}`;
+		}
+		payCooldown = true;
+		setTimeout(() => {
+			payCooldown = false;
+		}, 2000);
+	}
+	// --- Handle tag scan ---
+	async function handleTag(uid) {
+		if(batchMode === 'activate') {
+			await apiGet(`/api/nodes/activate_coin?coin_tag_id=${uid}`);
+			return;
+		}
+		if(batchMode === 'deactivate') {
+			await apiGet(`/api/nodes/deactivate_coin?coin_tag_id=${uid}`);
+			return;
+		}
+		if(batchMode === 'setValue') {
+			await apiGet(`/api/nodes/set_coinval?coin_tag_id=${uid}&coin_value=${batchValue}`);
+			return;
+		}
+		const info = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
+		renderInfo(info, uid);
+	}
+	// --- Render user info + coin scan option ---
+	function renderInfo(info, uid) {
+		const actions = document.getElementById('scanActions');
+		actions.innerHTML = '';
+		document.getElementById('waitingState').classList.add('hidden');
+		actions.classList.remove('hidden');
+		if(info.error) {
+			actions.innerHTML = `
+      <p>No matching user or coin found.</p>
+      <button class='btn btn-success mt-2' onclick="createUser('${uid}')">Create User</button>
+      <button class='btn btn-warning mt-2' onclick="createCoin('${uid}')">Create Coin</button>
+    `;
+			return;
+		}
+		if(info.type === 'user') {
+			currentUserId = info.id;
+			currentUserUID = uid;
+			actions.innerHTML = `
+      <div style="border:1px solid #ccc; border-radius:8px; padding:15px; max-width:400px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); text-align:left;">
+        <h4 style="color:#007bff; margin-bottom:15px;">User Tag</h4>
+        <p style="font-size:1.2rem;"><strong>Name:</strong> ${info.user_name}
+          <button class='btn btn-sm btn-outline-primary' style="margin-left:10px;" onclick="editField(${info.id}, 'user_name', '${info.user_name}', '${uid}')">Edit</button>
+        </p>
+        <p style="font-size:1.2rem;"><strong>Acronym:</strong> ${info.user_acro}
+          <button class='btn btn-sm btn-outline-primary' style="margin-left:10px;" onclick="editField(${info.id}, 'user_acro', '${info.user_acro}', '${uid}')">Edit</button>
+        </p>
+        <p style="font-size:1.2rem;"><strong>Time:</strong> <span id="userTime">${formatSeconds(info.remaining_time)}</span> 
+          <span style="font-size:0.9rem; color:#666;">(raw ${info.remaining_time}s)</span>
+          <button class='btn btn-sm btn-outline-primary' style="margin-left:10px;" onclick="changeTime('${uid}')">Edit</button>
+        </p>
+        <button class='btn btn-info mt-3' onclick="toggleScanCoins()">
+          ${scanningCoins ? 'Stop Scanning Coins' : 'Scan Coins'}
+        </button>
+        <div id="coinEarnings" style="margin-top:15px; font-size:1rem; color:#333;"></div>
+      </div>
+    `;
+			if(scanningCoins) {
+				document.getElementById('coinEarnings').innerHTML = `<p>Scan coins now to add time. Press "Stop Scanning Coins" to finish.</p>`;
+				scanTag(handleCoinScan);
+			}
+		} else if(!scanningCoins) {
+			// Show coin cards only if NOT scanning coins
+			actions.innerHTML = `
+      <div style="border:1px solid #ccc; border-radius:8px; padding:15px; max-width:400px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); text-align:left;">
+        <h4 style="color:#28a745; margin-bottom:15px;">Coin Tag</h4>
+        <p style="font-size:1.2rem;"><strong>Category:</strong> ${info.coin_category_name || 'N/A'}
+          <button class='btn btn-sm btn-outline-primary' style="margin-left:10px;" onclick="promptEditCategory('${uid}')">Edit</button>
+        </p>
+        <p style="font-size:1.2rem;"><strong>Value:</strong> ${info.coin_value || 0}
+          <button class='btn btn-sm btn-outline-primary' style="margin-left:10px;" onclick="promptEditValue('${uid}')">Edit</button>
+        </p>
+        <p style="font-size:1.2rem;"><strong>Active:</strong> ${info.active ? 'Yes' : 'No'}</p>
+        <button class='btn ${info.active ? 'btn-danger' : 'btn-success'} mt-3' 
+          onclick="${info.active ? `deactivateCoin('${uid}')` : `activateCoin('${uid}')`}">
+          ${info.active ? 'Deactivate Coin' : 'Activate Coin'}
+        </button>
+      </div>
+    `;
+		}
+	}
 
-    <!-- LOG -->
-    <div id="log-container">
-        <h3>Log</h3>
-        <div id="log">Ready.</div>
-    </div>
-
-    <script>
-        const logElement = document.getElementById('log');
-        const modeLabel = document.getElementById('modeLabel');
-        
-        let payMode = null;
-        let payCooldown = false;
-        
-        // --- Logging ---
-        function log(message) {
-          logElement.textContent += '\n' + message;
-          logElement.scrollTop = logElement.scrollHeight;
-        }
-        
-        // --- API helpers ---
-        async function apiGet(url) {
-          log(`GET: ${url}`);
-          const res = await fetch(url);
-          const data = await res.json();
-          log(`Response: ${JSON.stringify(data)}`);
-          return data;
-        }
-        async function apiPost(url, body = {}) {
-          log(`POST (form): ${url}`);
-          const formBody = new URLSearchParams(body).toString();
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: formBody
-          });
-          const data = await res.json();
-          log(`Response: ${JSON.stringify(data)}`);
-          return data;
-        }
-        
-        // --- Format time ---
-        function formatSeconds(sec) {
-          const days = Math.floor(sec / 86400);
-          const hours = Math.floor((sec % 86400) / 3600);
-          const minutes = Math.floor((sec % 3600) / 60);
-          const seconds = sec % 60;
-          return `${String(days).padStart(2,'0')}:${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
-        }
-        
-        // --- Navigation ---
-        function goHome() {
-          batchMode = null;
-          batchValue = null;
-          document.getElementById('mainMenu').classList.remove('hidden');
-          document.getElementById('scanScreen').classList.add('hidden');
-          document.getElementById('scanActions').classList.add('hidden');
-          document.getElementById('waitingState').classList.remove('hidden');
-          document.getElementById('tagUID').textContent = 'Waiting for tag...';
-          document.getElementById('payTerminalScreen').classList.add('hidden'); // FIX: Hide pay terminal
-          modeLabel.textContent = 'Mode: Main Menu';
-        }
-        
-        // --- NFC Scan ---
-        async function scanTag(callback) {
-          try {
-            const ndef = new NDEFReader();
-            await ndef.scan();
-            log('> Scan started');
-            ndef.addEventListener('reading', ({
-              serialNumber
-            }) => {
-              const uid = serialNumber.toUpperCase();
-              log(`Tag UID: ${uid}`);
-              document.getElementById('tagUID').textContent = `UID: ${uid}`;
-              callback(uid);
-            });
-          } catch (err) {
-            log('Error: ' + err);
-          }
-        }
-        
-        function enterScanMode(modeName) {
-          document.getElementById('mainMenu').classList.add('hidden');
-          document.getElementById('scanScreen').classList.remove('hidden');
-          document.getElementById('scanActions').classList.add('hidden');
-          document.getElementById('waitingState').classList.remove('hidden');
-          document.getElementById('tagUID').textContent = 'Waiting for tag...';
-          modeLabel.textContent = `Mode: ${modeName}`;
-        }
-        
-        // --- Modes ---
-        let batchMode = null;
-        let batchValue = null;
-        
-        function startScan() {
-          enterScanMode('Scan NFC Tag');
-          scanTag(handleTag);
-        }
-        
-        function startBatchActivate() {
-          batchMode = 'activate';
-          enterScanMode('Batch Activate Coins');
-          scanTag(handleTag);
-        }
-        
-        function startBatchDeactivate() {
-          batchMode = 'deactivate';
-          enterScanMode('Batch Deactivate Coins');
-          scanTag(handleTag);
-        }
-        async function startBatchSetValue() {
-          const val = prompt('Enter coin value:');
-          if (val === null) return;
-          batchValue = parseInt(val, 10);
-          if (isNaN(batchValue)) {
-            alert('Invalid value');
-            return;
-          }
-          batchMode = 'setValue';
-          enterScanMode(`Batch Set Value = ${batchValue}`);
-          scanTag(handleTag);
-        }
-        
-        function startPayTerminal() {
-          document.getElementById('mainMenu').classList.add('hidden');
-          document.getElementById('scanScreen').classList.add('hidden');
-          document.getElementById('payTerminalScreen').classList.remove('hidden');
-          modeLabel.textContent = 'Mode: Pay Terminal';
-          document.getElementById('payInfo').textContent = 'Select time and mode, then scan a user tag.';
-          scanTag(handlePayTag);
-        }
-        
-        function setPayMode(mode) {
-          payMode = mode;
-          document.getElementById('payInfo').textContent = `Mode: "${mode}" — Scan a user tag to apply.`;
-        }
-        
-        async function handlePayTag(uid) {
-          if (payCooldown) {
-            log('Cooldown active, ignoring repeated scan.');
-            return;
-          }
-          if (!payMode) {
-            document.getElementById('payInfo').textContent = 'Select + or - before scanning!';
-            return;
-          }
-        
-          const days = parseInt(document.getElementById('daysInput').value) || 0;
-          const hours = parseInt(document.getElementById('hoursInput').value) || 0;
-          const minutes = parseInt(document.getElementById('minutesInput').value) || 0;
-          const seconds = parseInt(document.getElementById('secondsInput').value) || 0;
-          const totalSeconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
-        
-          if (totalSeconds === 0) {
-            document.getElementById('payInfo').textContent = 'Time cannot be 0!';
-            return;
-          }
-        
-          let paym = payMode;
-          if (paym == "+") {
-            paym = "";
-          }
-          const endpoint = `/api/nodes/change_time?input_time=${totalSeconds}${paym}&user_tag_id=${uid}`;
-          data = await apiGet(endpoint);
-          if (data.status == "success") {
-            document.getElementById('payInfo').innerHTML = `Applied ${payMode}${totalSeconds}s to ${uid}<br>Current ballance: <b>${formatSeconds(data.user_time)}</b>`;
-          } else {
-            document.getElementById('payInfo').textContent = `Error applying ${payMode}${totalSeconds}s to ${uid}`;
-          }
-        
-          payCooldown = true;
-          setTimeout(() => {
-            payCooldown = false;
-          }, 2000);
-        }
-        
-        // --- Handle tag scan ---
-        async function handleTag(uid) {
-          if (batchMode === 'activate') {
-            await apiGet(`/api/nodes/activate_coin?coin_tag_id=${uid}`);
-            return;
-          }
-          if (batchMode === 'deactivate') {
-            await apiGet(`/api/nodes/deactivate_coin?coin_tag_id=${uid}`);
-            return;
-          }
-          if (batchMode === 'setValue') {
-            await apiGet(`/api/nodes/set_coinval?coin_tag_id=${uid}&coin_value=${batchValue}`);
-            return;
-          }
-        
-          const info = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
-          renderInfo(info, uid);
-        }
-        
-        // --- Render info ---
-        function renderInfo(info, uid) {
-          const actions = document.getElementById('scanActions');
-          actions.innerHTML = '';
-          document.getElementById('waitingState').classList.add('hidden');
-          actions.classList.remove('hidden');
-        
-          if (info.error) {
-            actions.innerHTML = `
-              <p>No matching user or coin found.</p>
-              <button class='btn btn-success mt-2' onclick="createUser('${uid}')">Create User</button>
-              <button class='btn btn-warning mt-2' onclick="createCoin('${uid}')">Create Coin</button>
-            `;
-            return;
-          }
-        
-          // Card wrapper
-          let cardHTML = `
-            <div style="border:1px solid #ccc; border-radius:8px; padding:15px; max-width:400px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); text-align:left;">
-          `;
-        
-          if (info.type === 'user') {
-            cardHTML += `
-              <h4 style="color:#007bff; margin-bottom:15px;">User Tag</h4>
-              <p style="font-size:1.2rem;"><strong>Name:</strong> ${info.user_name}
-                <button class='btn btn-sm btn-outline-primary edit-btn' style="margin-left:10px;" onclick="editField(${info.id}, 'user_name', '${info.user_name}', '${uid}')">Edit</button>
-              </p>
-              <p style="font-size:1.2rem;"><strong>Acronym:</strong> ${info.user_acro}
-                <button class='btn btn-sm btn-outline-primary edit-btn' style="margin-left:10px;" onclick="editField(${info.id}, 'user_acro', '${info.user_acro}', '${uid}')">Edit</button>
-              </p>
-              <p style="font-size:1.2rem;"><strong>Time:</strong> ${formatSeconds(info.remaining_time)} <span style="font-size:0.9rem; color:#666;">(raw ${info.remaining_time}s)</span>
-                <button class='btn btn-sm btn-outline-primary edit-btn' style="margin-left:10px;" onclick="changeTime('${uid}')">Edit</button>
-              </p>
-            `;
-          } else if (info.type === 'coin') {
-            cardHTML += `
-              <h4 style="color:#28a745; margin-bottom:15px;">Coin Tag</h4>
-              <p style="font-size:1.2rem;"><strong>Category:</strong> ${info.coin_category_name || 'N/A'}
-                <button class='btn btn-sm btn-outline-primary edit-btn' style="margin-left:10px;" onclick="promptEditCategory('${uid}')">Edit</button>
-              </p>
-              <p style="font-size:1.2rem;"><strong>Value:</strong> ${info.coin_value || 0}
-                <button class='btn btn-sm btn-outline-primary edit-btn' style="margin-left:10px;" onclick="promptEditValue('${uid}')">Edit</button>
-              </p>
-              <p style="font-size:1.2rem;"><strong>Active:</strong> ${info.active ? 'Yes' : 'No'}</p>
-              <button class='btn ${info.active ? 'btn-danger' : 'btn-success'} mt-3' 
-                onclick="${info.active ? `deactivateCoin('${uid}')` : `activateCoin('${uid}')`}">
-                ${info.active ? 'Deactivate Coin' : 'Activate Coin'}
-              </button>
-            `;
-          }
-        
-          cardHTML += `</div>`;
-          actions.innerHTML = cardHTML;
-        }
-        
-        // --- User actions ---
-        async function createUser(uid) {
-          const name = prompt('Enter user name:');
-          const acro = prompt('Enter acronym:');
-          const time = prompt('Enter starting time (sec):', '0');
-          const timestamp = new Date().toISOString().slice(0, 19);
-        
-          await apiPost('/api/admin/add_user', {
-            user_tag_id: uid,
-            user_name: name,
-            user_acro: acro,
-            user_time_offset: time,
-            user_game_start_timestamp: timestamp
-          });
-        
-          const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
-          renderInfo(refreshed, uid);
-        }
-        
-        async function editField(userId, field, current, uid) {
-          const value = prompt(`Enter new value for ${field}:`, current);
-          if (!value) return;
-          await apiGet(`/api/admin/set_user_field?user_id=${userId}&field_name=${field}&new_value=${encodeURIComponent(value)}`);
-        
-          const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
-          renderInfo(refreshed, uid);
-        }
-        
-        async function changeTime(uid) {
-          const input = prompt('Enter time change (e.g. 30+, 20-, 50%):');
-          if (!input) return;
-          await apiGet(`/api/nodes/change_time?input_time=${encodeURIComponent(input)}&user_tag_id=${uid}`);
-        
-          const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
-          renderInfo(refreshed, uid);
-        }
-        
-        // --- Coin actions ---
-        async function createCoin(uid) {
-          const val = prompt('Enter coin value:');
-          await apiGet(`/api/nodes/set_coinval?coin_tag_id=${uid}&coin_value=${val}`);
-        
-          const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
-          renderInfo(refreshed, uid);
-        }
-        
-        async function promptEditCategory(uid) {
-          const cat = prompt('Enter new category ID:');
-          await apiGet(`/api/nodes/set_coinval?coin_tag_id=${uid}&category=${cat}`);
-        
-          const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
-          renderInfo(refreshed, uid);
-        }
-        
-        async function promptEditValue(uid) {
-          const val = prompt('Enter new value:');
-          await apiGet(`/api/nodes/set_coinval?coin_tag_id=${uid}&coin_value=${val}`);
-        
-          const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
-          renderInfo(refreshed, uid);
-        }
-        
-        async function activateCoin(uid) {
-          await apiGet(`/api/nodes/activate_coin?coin_tag_id=${uid}`);
-          const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
-          renderInfo(refreshed, uid);
-        }
-        
-        async function deactivateCoin(uid) {
-          await apiGet(`/api/nodes/deactivate_coin?coin_tag_id=${uid}`);
-          const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
-          renderInfo(refreshed, uid);
-        }
-    </script>
-
+	function toggleScanCoins() {
+		scanningCoins = !scanningCoins;
+		const earningsDiv = document.getElementById('coinEarnings');
+		const button = document.querySelector('#scanActions button.btn-info');
+		if(scanningCoins) {
+			earningsDiv.innerHTML = `<p>Scan coins now to add time. Press "Stop Scanning Coins" to finish.</p>`;
+			button.textContent = 'Stop Scanning Coins';
+			// Start scan in coin mode (allowCoins=true)
+			scanTag(handleTag, true);
+		} else {
+			earningsDiv.innerHTML = '';
+			button.textContent = 'Scan Coins';
+		}
+	}
+	// --- Dedicated coin scan listener (only active when scanningCoins = true) ---
+	function startCoinScanListener() {
+		if(!('NDEFReader' in window)) {
+			log('NFC not supported');
+			return;
+		}
+		const ndef = new NDEFReader();
+		ndef.scan().then(() => {
+			log('> Coin scan mode active');
+			ndef.addEventListener('reading', async ({
+				serialNumber
+			}) => {
+				if(!scanningCoins) return; // Exit if stopped
+				if(coinScanCooldown) return;
+				const coinUID = serialNumber.toUpperCase();
+				await handleCoinScan(coinUID);
+			});
+		}).catch(err => {
+			log('Error: ' + err);
+		});
+	}
+	// --- Handle coin scan during user coin-adding mode ---
+	async function handleCoinScan(coinUID) {
+		if(coinScanCooldown) return;
+		coinScanCooldown = true;
+		if(!currentUserUID) {
+			log('No user selected for coin scanning');
+			coinScanCooldown = false;
+			return;
+		}
+		const response = await apiGet(`/api/nodes/add_coinval?coin_tag_id=${coinUID}&user_tag_id=${currentUserUID}`);
+		const earningsDiv = document.getElementById('coinEarnings');
+		if(response.status === 'success') {
+			document.getElementById('userTime').textContent = formatSeconds(response.user_time);
+			let coinval_sgn = (response.coin_value > 0) ? '+' : '-';
+			let alert_type = (response.coin_value > 0) ? 'success' : 'warning';
+			earningsDiv.innerHTML = `
+  <div class="alert alert-${alert_type}" role="alert">
+    <h3 style="display:inline-block; margin-right:10px;">
+      ${coinval_sgn}${formatSeconds(Math.abs(response.coin_value))}
+      <span style="font-size:0.9rem; color:#666;">(${response.coin_value}s)</span>
+    </h3><br>
+    from coin ${coinUID} → Total: ${formatSeconds(response.user_time)}
+  </div>
+`;
+		} else {
+			earningsDiv.innerHTML = `<div class="alert alert-danger" role="alert">Error scanning coin ${coinUID}: ${response.error || 'Unknown error'}</div>`;
+		}
+		setTimeout(() => {
+			coinScanCooldown = false;
+		}, 1500);
+	}
+	// --- User actions ---
+	async function createUser(uid) {
+		const name = prompt('Enter user name:');
+		const acro = prompt('Enter acronym:');
+		const time = prompt('Enter starting time (sec):', '0');
+		const timestamp = new Date().toISOString().slice(0, 19);
+		await apiPost('/api/admin/add_user', {
+			user_tag_id: uid,
+			user_name: name,
+			user_acro: acro,
+			user_time_offset: time,
+			user_game_start_timestamp: timestamp
+		});
+		const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
+		renderInfo(refreshed, uid);
+	}
+	async function editField(userId, field, current, uid) {
+		const value = prompt(`Enter new value for ${field}:`, current);
+		if(!value) return;
+		await apiGet(`/api/admin/set_user_field?user_id=${userId}&field_name=${field}&new_value=${encodeURIComponent(value)}`);
+		const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
+		renderInfo(refreshed, uid);
+	}
+	async function changeTime(uid) {
+		const input = prompt('Enter time change (e.g. 30+, 20-, 50%):');
+		if(!input) return;
+		await apiGet(`/api/nodes/change_time?input_time=${encodeURIComponent(input)}&user_tag_id=${uid}`);
+		const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
+		renderInfo(refreshed, uid);
+	}
+	// --- Coin actions ---
+	async function createCoin(uid) {
+		const val = prompt('Enter coin value:');
+		await apiGet(`/api/nodes/set_coinval?coin_tag_id=${uid}&coin_value=${val}`);
+		const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
+		renderInfo(refreshed, uid);
+	}
+	async function promptEditCategory(uid) {
+		const cat = prompt('Enter new category ID:');
+		await apiGet(`/api/nodes/set_coinval?coin_tag_id=${uid}&category=${cat}`);
+		const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
+		renderInfo(refreshed, uid);
+	}
+	async function promptEditValue(uid) {
+		const val = prompt('Enter new value:');
+		await apiGet(`/api/nodes/set_coinval?coin_tag_id=${uid}&coin_value=${val}`);
+		const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
+		renderInfo(refreshed, uid);
+	}
+	async function activateCoin(uid) {
+		await apiGet(`/api/nodes/activate_coin?coin_tag_id=${uid}`);
+		const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
+		renderInfo(refreshed, uid);
+	}
+	async function deactivateCoin(uid) {
+		await apiGet(`/api/nodes/deactivate_coin?coin_tag_id=${uid}`);
+		const refreshed = await apiGet(`/api/nodes/search_tags?tag_id=${uid}`);
+		renderInfo(refreshed, uid);
+	}
+	</script>
 </body>
 
 </html>
