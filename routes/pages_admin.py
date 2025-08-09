@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, render_template, request, redirect, url_for
 
 import config
 from db.helpers import insert_coin, insert_user
@@ -225,3 +225,12 @@ def admin_announcements():
 @bp_admin_pages.route("/nfc_app", methods=["GET"])
 def nfc_app():
     return render_template("nfc_app.html", config=config)
+
+
+
+@bp_admin_pages.route('/safe-deposit', methods=['GET'])
+def safe_deposit():
+    return render_template('safe_deposit.html')
+
+
+    

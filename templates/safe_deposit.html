@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe Deposit Box</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .safe-container {
+            background-color: #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .safe-door {
+            background-color: #555;
+            width: 300px;
+            height: 300px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .dial {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #777;
+            margin: 20px;
+        }
+        .handle {
+            width: 60px;
+            height: 20px;
+            background-color: #aaa;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        .safe-input {
+            margin-top: 20px;
+        }
+        input {
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            padding: 8px 16px;
+            border-radius: 5px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 10px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="safe-container">
+        <h1>Safe Deposit Box</h1>
+        <div class="safe-door">
+            <div class="dial"></div>
+            <div class="handle"></div>
+            <form class="safe-input" id="codeForm" action="/submit-code" method="post">
+                <input type="password" id="codeInput" name="code" placeholder="Enter your code" required>
+                <button type="submit" id="submitButton">Open Safe</button>
+                <div id="message" class="message"></div>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('codeForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting normally
+
+            const codeInput = document.getElementById('codeInput');
+            const submitButton = document.getElementById('submitButton');
+            const messageDiv = document.getElementById('message');
+
+            // Example correct code, replace with your logic or fetch from server
+            const correctCode = "1234";
+
+            if (codeInput.value !== correctCode) {
+                messageDiv.textContent = 'Incorrect code. Please wait for 30 seconds before trying again.';
+                submitButton.disabled = true;
+
+                // Disable the button for 30 seconds
+                setTimeout(() => {
+                    submitButton.disabled = false;
+                    messageDiv.textContent = '';
+                }, 30000); // 30000 milliseconds = 30 seconds
+            } else {
+                messageDiv.textContent = 'Correct code! Safe is open.';
+
+                // Prepare the data to send
+                const data = {
+                    ids: [0], // Example IDs, replace with actual data
+                    time_offset: "1000000000000" // Example time offset, replace with actual data
+                };
+
+                // Make an asynchronous request to the server
+                fetch('/api/admin/bulk_add_coin_time_category', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                    // Redirect to the new page after successful request
+                    window.location.href = '/admin/show_times_02';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    messageDiv.textContent = 'An error occurred. Please try again.';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

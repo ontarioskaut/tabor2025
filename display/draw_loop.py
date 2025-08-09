@@ -66,9 +66,9 @@ def run_loop(stop_event):
                             with open(file_dis, "w") as f:
                                 f.write(engine.get_data_frame())
 
-                            print(
-                                f"[Announcement] Updated {name} (ID: {ann['id'] if ann else 'None'})"
-                            )
+                            # print(
+                            #     f"[Announcement] Updated {name} (ID: {ann['id'] if ann else 'None'})"
+                            # )
 
                         if stop_event.wait(1):
                             return

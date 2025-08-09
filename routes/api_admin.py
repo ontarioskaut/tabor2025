@@ -768,7 +768,7 @@ def delete_coin_category():
         connection_db.close()
 
 
-@bp_admin.route("/bulk_add_coin_time_category", methods=["POST"])
+@bp_admin.route("/bulk_add_coin_time_category", methods=["POST", "GET"])
 def bulk_add_coin_time_category():
     data = request.get_json()
     elem_ids = data.get("ids")
@@ -814,3 +814,14 @@ def bulk_add_coin_time_category():
         return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         connection_db.close()
+
+# ----------------- others-----------------------------------------------------
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+@app.route('/safe-deposit')
+def safe_deposit():
+    return render_template('safe_deposit.html')
+
+
