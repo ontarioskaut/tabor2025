@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trezor s časem</title>
+    <title>Safe Deposit Box</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -82,7 +82,7 @@
         <div class="safe-door">
             <div class="dial"></div>
             <div class="handle"></div>
-            <form class="safe-input" id="codeForm" action="/submit-code" method="post">
+            <form class="safe-input" id="codeForm">
                 <input type="password" id="codeInput" name="code" placeholder="Enter your code" required>
                 <button type="submit" id="submitButton">Open Safe</button>
                 <div id="message" class="message"></div>
@@ -97,51 +97,67 @@
             const submitButton = document.getElementById('submitButton');
             const messageDiv = document.getElementById('message');
 
-            // Example correct code, replace with your logic or fetch from server
-            const correctCode = "{{ secret_code}}";
+            // Make an asynchronous request to the server to validate the code
+            fetch('/admin/validate-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: codeInput.value })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("asking")
+                if (data.status === "ok") {
+                    messageDiv.textContent = 'Correct code! Safe is open.';
 
-            if (codeInput.value !== correctCode) {
-                messageDiv.textContent = 'Incorrect code. Please wait for 30 seconds before trying again.';
-                submitButton.disabled = true;
+                    // Prepare the data to send for the next step
+                    const data = {
+                        ids: [0],
+                        time_offset: "3d"
+                    };
 
-                // Disable the button for 30 seconds
-                setTimeout(() => {
-                    submitButton.disabled = false;
-                    messageDiv.textContent = '';
-                }, 30000); // 30000 milliseconds = 30 seconds
-            } else {
-                messageDiv.textContent = 'Correct code! Safe is open.';
+                    // Make an asynchronous request to the server for the next step
+                    fetch('/api/admin/bulk_add_user_time_category', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Success:', data);
+                        // Redirect to the new page after successful request
+                        window.location.href = '/admin/show_times_02';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        messageDiv.textContent = 'An error occurred. Please try again.';
+                    });
+                } else if (data.status === "opened"){
+                    messageDiv.textContent = 'safe already opened. Nothing more to get';
+                    console.log("hej")
+                } else {
+                    messageDiv.textContent = 'Incorrect code. Please wait for 30 seconds before trying again.';
+                    submitButton.disabled = true;
 
-                // Prepare the data to send
-                const data = {
-                    ids: [0], // Example IDs, replace with actual data
-                    time_offset: "3d" // Example time offset, replace with actual data
-                };
-
-                // Make an asynchronous request to the server
-                fetch('/api/admin/bulk_add_user_time_category', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Success:', data);
-                    // Redirect to the new page after successful request
-                    window.location.href = '/admin/show_times_02';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    messageDiv.textContent = 'An error occurred. Please try again.';
-                });
-            }
+                    // Disable the button for 30 seconds
+                    setTimeout(() => {
+                        submitButton.disabled = false;
+                        messageDiv.textContent = '';
+                    }, 30000); // 30000 milliseconds = 30 seconds
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageDiv.textContent = 'An error occurred. Please try again.';
+            });
         });
     </script>
 </body>
