@@ -230,7 +230,7 @@ def nfc_app():
 
 @bp_admin_pages.route('/safe-deposit', methods=['GET'])
 def safe_deposit():
-    return render_template('safe_deposit.html')
+    return render_template('safe_deposit.html', secret_code=config.GAME_CODE)
 
 
     

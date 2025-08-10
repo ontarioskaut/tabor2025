@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safe Deposit Box</title>
+    <title>Trezor s časem</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -98,7 +98,7 @@
             const messageDiv = document.getElementById('message');
 
             // Example correct code, replace with your logic or fetch from server
-            const correctCode = "1234";
+            const correctCode = "{{ secret_code}}";
 
             if (codeInput.value !== correctCode) {
                 messageDiv.textContent = 'Incorrect code. Please wait for 30 seconds before trying again.';
@@ -115,11 +115,11 @@
                 // Prepare the data to send
                 const data = {
                     ids: [0], // Example IDs, replace with actual data
-                    time_offset: "1000000000000" // Example time offset, replace with actual data
+                    time_offset: "3d" // Example time offset, replace with actual data
                 };
 
                 // Make an asynchronous request to the server
-                fetch('/api/admin/bulk_add_coin_time_category', {
+                fetch('/api/admin/bulk_add_user_time_category', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
