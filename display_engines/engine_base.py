@@ -95,7 +95,7 @@ class EngineBase:
 
         formatted_times = []
         for entry in time_data:
-            for label, total_seconds in sorted(entry.items()):
+            for label, total_seconds in entry.items():
                 if total_seconds == 0:
                     formatted_times.append((label, "DEAD"))
                     continue

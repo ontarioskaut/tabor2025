@@ -19,7 +19,7 @@ def get_time_data():
     connection_db = sqlite3.connect(config.DATABASE_NAME)
     cursor_db = connection_db.cursor()
     cursor_db.execute(
-        "SELECT user_acro, user_time_offset, user_game_start_timestamp, is_displayed FROM users"
+        "SELECT user_acro, user_time_offset, user_game_start_timestamp, is_displayed FROM users ORDER BY user_acro ASC"
     )
     rows = cursor_db.fetchall()
     connection_db.close()
