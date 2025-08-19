@@ -815,13 +815,13 @@ def bulk_add_coin_time_category():
     finally:
         connection_db.close()
 
+
 # ----------------- others-----------------------------------------------------
 from flask import Flask, render_template
 
 app = Flask(__name__)
 
-@app.route('/safe-deposit')
+
+@app.route("/safe-deposit")
 def safe_deposit():
-    return render_template('safe_deposit.html')
-
-
+    return render_template("safe_deposit.html")

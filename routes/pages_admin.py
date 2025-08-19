@@ -1,7 +1,8 @@
 import sqlite3
 from datetime import datetime
 
-from flask import Blueprint, jsonify, render_template, request, redirect, url_for
+from flask import (Blueprint, jsonify, redirect, render_template, request,
+                   url_for)
 
 import config
 from db.helpers import insert_coin, insert_user
@@ -227,28 +228,25 @@ def nfc_app():
     return render_template("nfc_app.html", config=config)
 
 
-
-@bp_admin_pages.route('/safe-deposit', methods=['GET'])
+@bp_admin_pages.route("/safe-deposit", methods=["GET"])
 def safe_deposit():
     if config.GAME_SAFE_ALLOWED:
 
-        return render_template('safe_deposit.html')
+        return render_template("safe_deposit.html")
     else:
-        return jsonify({"error":"safe already opened, reactive safe in admin config"})
+        return jsonify({"error": "safe already opened, reactive safe in admin config"})
 
-@bp_admin_pages.route('/validate-code', methods=['POST'])
+
+@bp_admin_pages.route("/validate-code", methods=["POST"])
 def validate_code():
     data = request.get_json()
-    entered_code = data.get('code')
+    entered_code = data.get("code")
 
     if int(entered_code) == config.GAME_CODE and config.GAME_SAFE_ALLOWED:
         config.GAME_SAFE_ALLOWED = False
         return jsonify({"status": "ok"})
     elif not config.GAME_SAFE_ALLOWED:
         print("here")
-        return jsonify({"status":"opened"})
+        return jsonify({"status": "opened"})
     else:
         return jsonify({"status": "nok"})
-
-
-    
