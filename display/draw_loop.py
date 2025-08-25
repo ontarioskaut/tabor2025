@@ -3,12 +3,11 @@ import time
 
 from PIL import Image
 
-import config
 from display.engine_loader import load_display_engines
 from routes.api_display import get_announcements, get_time_data
 
 
-def run_loop(stop_event):
+def run_loop(stop_event, config):
     displays = load_display_engines()
 
     state_dir = getattr(config, "DISPLAY_STATE_DIR", "display_state")
@@ -24,6 +23,29 @@ def run_loop(stop_event):
     completed_cycles = 0
 
     while not stop_event.is_set():
+        print("[Check loop]", config.SYSTEM_ACTIVE)
+
+        if not config.SYSTEM_ACTIVE:
+            print("not condition passed")
+            for display in displays:
+                engine = display["engine_instance"]
+                name = display["name"]
+
+                engine.draw_announcement(getattr(config, "INACTIVE_ANNOUNCEMENT", ""))
+
+                file_png = os.path.join(state_dir, f"{name}_current.png")
+                engine.get_bitmap(file_png)
+
+                file_dis = os.path.join(state_dir, f"{name}_current.dis")
+                with open(file_dis, "w") as f:
+                    f.write(engine.get_data_frame())
+
+                print(f"[Inactive] Updated {file_png} and {file_dis}")
+
+            if stop_event.wait(screen_duration):
+                return
+            continue
+
         if completed_cycles >= cycles_until_announcement:
             completed_cycles = 0
             announcements = get_announcements()
@@ -67,10 +89,6 @@ def run_loop(stop_event):
                             file_dis = os.path.join(state_dir, f"{name}_current.dis")
                             with open(file_dis, "w") as f:
                                 f.write(engine.get_data_frame())
-
-                            # print(
-                            #     f"[Announcement] Updated {name} (ID: {ann['id'] if ann else 'None'})"
-                            # )
 
                         if stop_event.wait(1):
                             return

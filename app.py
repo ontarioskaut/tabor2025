@@ -36,7 +36,9 @@ thread = None
 def start_background_thread():
     global thread
     if thread is None or not thread.is_alive():
-        thread = threading.Thread(target=run_loop, args=(stop_event,), daemon=True)
+        thread = threading.Thread(
+            target=run_loop, args=(stop_event, config), daemon=True
+        )
         thread.start()
         print("[Thread] Background draw_loop started")
 
@@ -45,7 +47,7 @@ def start_format_thread():
     global thread
     if thread is None or not thread.is_alive():
         thread = threading.Thread(
-            target=run_format_loop, args=(stop_event,), daemon=True
+            target=run_format_loop, args=(stop_event, config), daemon=True
         )
         thread.start()
         print("[Thread] Background format_loop started")
@@ -79,4 +81,6 @@ if __name__ == "__main__":
         print("Running in normal mode")
         start_background_thread()
 
-    app.run(host="0.0.0.0", debug=True, ssl_context=config.SSL_CONTEXT)
+    app.run(
+        host="0.0.0.0", debug=True, use_reloader=False, ssl_context=config.SSL_CONTEXT
+    )

@@ -203,6 +203,21 @@ def delete_user():
         connection_db.close()
 
 
+@bp_admin.route("/list_users", methods=["GET"])
+def api_users_list():
+    connection_db = sqlite3.connect(config.DATABASE_NAME)
+    cursor_db = connection_db.cursor()
+
+    rows = cursor_db.execute(
+        """
+        SELECT *
+        FROM users
+    """
+    ).fetchall()
+    connection_db.close()
+    return rows
+
+
 @bp_admin.route("/bulk_add_user_time", methods=["POST"])
 def bulk_add_user_time():
     data = request.get_json()
@@ -577,6 +592,21 @@ def bulk_add_user_time_category():
         return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         connection_db.close()
+
+
+@bp_admin.route("/list_categories", methods=["GET"])
+def api_cat_list():
+    connection_db = sqlite3.connect(config.DATABASE_NAME)
+    cursor_db = connection_db.cursor()
+
+    rows = cursor_db.execute(
+        """
+        SELECT *
+        FROM users_category
+    """
+    ).fetchall()
+    connection_db.close()
+    return rows
 
 
 # -------------------- users category relations--------------------------------

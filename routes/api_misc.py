@@ -20,3 +20,24 @@ def show_logs_json():
     connection_db.close()
 
     return result
+
+
+@bp_misc.route("/get_active", methods=["GET"])
+def get_active():
+    return str(getattr(config, "SYSTEM_ACTIVE", True))
+
+
+@bp_misc.route("/set_active", methods=["POST"])
+def set_active():
+    new_state = request.form.get("state")
+    print("Changing state:", new_state)
+    if new_state == "True":
+        config.SYSTEM_ACTIVE = True
+    else:
+        config.SYSTEM_ACTIVE = False
+    return "True"
+
+
+@bp_misc.route("/get_allocated_time", methods=["GET"])
+def get_allocated_time():
+    return str(getattr(config, "ALLOCATED_TIME", 0))
